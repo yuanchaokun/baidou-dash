@@ -85,37 +85,6 @@ body {
   color: #555;
   font-size: 18px;
 }
-.dbl-btn {
-  width: 100%;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.dbl-btn .dots-icon {
-  display: flex;
-  background: #2a2a2a;
-  gap: 6px;
-}
-.dots-icon span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #888;
-}
-.dbl-btn.armed {
-  border-color: #4a4a4a;
-  background: #222;
-}
-.dbl-btn.armed .dots-icon span {
-  background: #e5e5e5;
-}
-.dbl-btn.armed .hint-idle,
-.dbl-btn .hint-ready {
-  display: none;
-}
-.dbl-btn.armed .hint-ready {
-  display: block;
-}
 .footer {
   text-align: center;
   padding: 20px 0;
@@ -152,15 +121,19 @@ body {
     <span class="link-arrow">›</span>
   </a>
 
-  <button type="button" class="link-btn dbl-btn" data-dbl-open="https://my.feishu.cn/base/Ocwzb6rVdainrZsrHSZc8KO8nIh?table=tbl3UTgJcti81jHS&view=vewfbYvOlV" aria-label="见面结果，双击打开">
-    <div class="link-icon dots-icon" aria-hidden="true"><span></span><span></span></div>
+</div>
+
+<div class="section">
+  <div class="section-title">查看</div>
+
+  <a class="link-btn" href="/meetings/">
+    <div class="link-icon" style="background:#3a2418;">📒</div>
     <div class="link-text">
-      <h3>见面结果</h3>
-      <p class="hint-idle">双击打开 · 查看已提交记录</p>
-      <p class="hint-ready">再点一次打开</p>
+      <h3>见面账</h3>
+      <p>次数、月份、常常见面的人</p>
     </div>
-    <span class="link-arrow">··</span>
-  </button>
+    <span class="link-arrow">›</span>
+  </a>
 </div>
 
 <!--
@@ -170,40 +143,6 @@ body {
 -->
 
 <div class="footer">d.baidou.work</div>
-
-<script>
-(function () {
-  var gap = 450;
-  document.querySelectorAll("[data-dbl-open]").forEach(function (el) {
-    var last = 0;
-    var timer;
-    function arm() {
-      el.classList.add("armed");
-      clearTimeout(timer);
-      timer = setTimeout(function () {
-        last = 0;
-        el.classList.remove("armed");
-      }, gap);
-    }
-    function openResult() {
-      last = 0;
-      clearTimeout(timer);
-      el.classList.remove("armed");
-      window.open(el.getAttribute("data-dbl-open"), "_blank", "noopener");
-    }
-    el.addEventListener("click", function (e) {
-      e.preventDefault();
-      var now = Date.now();
-      if (last && now - last < gap) {
-        openResult();
-      } else {
-        last = now;
-        arm();
-      }
-    });
-  });
-})();
-</script>
 
 </body>
 </html>

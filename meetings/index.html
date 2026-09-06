@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#efe4cf">
+<title>见面账</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #efe4cf;
+  --paper-2: #e6d6b8;
+  --ink: #2b2218;
+  --ink-soft: #5c5146;
+  --seal: #b42318;
+  --rule: rgba(43, 34, 24, 0.14);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Noto Serif SC", "Songti SC", serif;
+  color: var(--ink);
+  background: var(--paper);
+  min-height: 100dvh;
+  padding: 28px 20px 72px;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+}
+.wrap { position: relative; max-width: 440px; margin: 0 auto; }
+.back {
+  display: inline-block;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 13px;
+  margin-bottom: 22px;
+}
+.mast {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 14px;
+  margin-bottom: 22px;
+}
+.mast p {
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  color: var(--ink-soft);
+}
+.mast h1 {
+  font-size: 34px;
+  line-height: 1;
+  margin-top: 6px;
+  font-weight: 700;
+}
+.seal {
+  width: 72px;
+  height: 72px;
+  border: 2px solid var(--seal);
+  color: var(--seal);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  transform: rotate(-8deg);
+  box-shadow: inset 0 0 0 1px var(--seal);
+}
+.seal b {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 26px;
+  line-height: 1;
+}
+.seal small {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+}
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 18px 0 28px;
+}
+.stat {
+  border: 1px solid var(--rule);
+  padding: 14px 14px 12px;
+  background: rgba(255,255,255,0.28);
+}
+.stat .k {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--ink-soft);
+}
+.stat .v {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 28px;
+  margin-top: 6px;
+}
+.stat em {
+  font-style: normal;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 28px 0 12px;
+}
+.months { display: grid; gap: 7px; }
+.month {
+  display: grid;
+  grid-template-columns: 64px 1fr 28px;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+}
+.month .bar {
+  height: 9px;
+  background: rgba(43, 34, 24, 0.08);
+  position: relative;
+}
+.month .bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--ink);
+  width: var(--w);
+}
+.month.zero { color: #9a8f82; }
+.month.zero .bar i { background: transparent; }
+.people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  border: 1px solid var(--ink);
+  padding: 6px 9px 5px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.chip b {
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 500;
+  margin-left: 6px;
+  color: var(--seal);
+}
+.recent { list-style: none; }
+.recent li {
+  padding: 12px 0;
+  border-top: 1px dashed var(--rule);
+}
+.recent time {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.recent h3 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 4px 0 3px;
+}
+.recent p { font-size: 13px; color: var(--ink-soft); }
+.foot {
+  margin-top: 36px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ink);
+  font-size: 12px;
+  color: var(--ink-soft);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.foot a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/">← 白豆工具箱</a>
+  <header class="mast">
+    <div>
+      <p>GATHERING LEDGER</p>
+      <h1>见面账</h1>
+    </div>
+    <div class="seal">
+      <div>
+        <b id="totalSeal">0</b>
+        <small>次</small>
+      </div>
+    </div>
+  </header>
+
+  <section class="stats" aria-label="见面次数">
+    <article class="stat">
+      <div class="k">二〇二五</div>
+      <div class="v" id="y2025">0</div>
+    </article>
+    <article class="stat">
+      <div class="k">二〇二六</div>
+      <div class="v" id="y2026">0</div>
+    </article>
+    <article class="stat">
+      <div class="k">见过的人</div>
+      <div class="v" id="peopleN">0</div>
+    </article>
+    <article class="stat">
+      <div class="k">最近一次</div>
+      <div class="v" style="font-size:18px;padding-top:8px" id="lastDate">—</div>
+    </article>
+  </section>
+
+  <h2>按月记下</h2>
+  <div class="months" id="months"></div>
+
+  <h2>常常见面</h2>
+  <div class="people" id="people"></div>
+
+  <h2>最近几笔</h2>
+  <ol class="recent" id="recent"></ol>
+
+  <footer class="foot">
+    <span id="meta"></span>
+    <a href="https://my.feishu.cn/base/Ocwzb6rVdainrZsrHSZc8KO8nIh?table=tbl3UTgJcti81jHS&view=vewfbYvOlV" target="_blank" rel="noopener">飞书底表</a>
+  </footer>
+</div>
+<script src="data.js"></script>
+<script>
+(function () {
+  var d = window.MEETING_DASH;
+  if (!d) return;
+  var max = Math.max.apply(null, d.months.map(function (m) { return m.count; }).concat([1]));
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+    });
+  }
+  function zhDate(iso) {
+    if (!iso) return "—";
+    var p = iso.split("-");
+    return p[0] + "." + p[1] + "." + p[2];
+  }
+  document.getElementById("totalSeal").textContent = d.total;
+  document.getElementById("y2025").textContent = d.years["2025"] || 0;
+  document.getElementById("y2026").textContent = d.years["2026"] || 0;
+  document.getElementById("peopleN").textContent = d.uniquePeople;
+  document.getElementById("lastDate").textContent = zhDate(d.lastDate);
+  document.getElementById("meta").textContent = "账页更新 " + d.generatedAt + " · " + d.source;
+  document.getElementById("months").innerHTML = d.months.map(function (m) {
+    var w = Math.round((m.count / max) * 100);
+    return '<div class="month' + (m.count ? "" : " zero") + '"><span>' + m.label.slice(2) + '</span><span class="bar"><i style="--w:' + w + '%"></i></span><span>' + m.count + '</span></div>';
+  }).join("");
+  document.getElementById("people").innerHTML = d.people.map(function (p) {
+    return '<span class="chip">' + esc(p.name) + "<b>" + p.count + "</b></span>";
+  }).join("");
+  document.getElementById("recent").innerHTML = d.recent.map(function (r) {
+    return "<li><time>" + zhDate(r.date) + "</time><h3>" + esc(r.title) + "</h3><p>" + esc(r.people.join("、") || "未写人名") + "</p></li>";
+  }).join("");
+})();
+</script>
+</body>
+</html>
