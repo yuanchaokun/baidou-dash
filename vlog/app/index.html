@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f3f6f4" id="themeColor">
+<title>视频日志 · cam.baidou.work</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f3f6f4;
+  --bg-2: #eaf0ec;
+  --card: #ffffff;
+  --line: #e1e8e4;
+  --line-2: #edf2ef;
+  --fill: #f6f9f7;
+  --fill-2: #eaf0ec;
+  --ink: #1e2925;
+  --ink-2: #5d6b65;
+  --ink-3: #97a49e;
+  --accent: #2f6b5a;
+  --accent-2: #3b8069;
+  --accent-ink: #ffffff;
+  --accent-soft: #e4f0ea;
+  --accent-soft-2: #d2e6dc;
+  --red: #d64b3f;
+  --red-soft: #c2382b;
+  --hud: #a9dcc3;
+  --win: #ffffff;
+  --scrim: rgba(30, 41, 37, 0.32);
+  --input: #ffffff;
+  --shadow: 0 1px 2px rgba(30, 41, 37, 0.04), 0 8px 28px -12px rgba(30, 41, 37, 0.14);
+  --shadow-lg: 0 30px 80px -30px rgba(30, 41, 37, 0.35);
+  --knob: #fff;
+  --serif: "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Hiragino Sans GB", sans-serif;
+  --r: 12px;
+  --r-lg: 18px;
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --bg: #111614;
+  --bg-2: #171d1a;
+  --card: #1a211d;
+  --line: #27312c;
+  --line-2: #212a25;
+  --fill: #1f2723;
+  --fill-2: #26302a;
+  --ink: #e8eeeb;
+  --ink-2: #9daba4;
+  --ink-3: #66746d;
+  --accent: #6cc3a0;
+  --accent-2: #86d3b4;
+  --accent-ink: #0e1a15;
+  --accent-soft: rgba(108, 195, 160, 0.14);
+  --accent-soft-2: rgba(108, 195, 160, 0.26);
+  --red: #e0584c;
+  --red-soft: #f08a80;
+  --win: #1a211d;
+  --scrim: rgba(0, 0, 0, 0.55);
+  --input: #141a17;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px -14px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 40px 100px -30px rgba(0, 0, 0, 0.9);
+  color-scheme: dark;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s, color 0.3s;
+}
+button { font-family: inherit; cursor: pointer; color: inherit; }
+button:disabled { cursor: default; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- 骨架：顶部头部 + 标签 ---------- */
+.app { max-width: 1480px; margin: 0 auto; padding: 22px 32px 40px; display: flex; flex-direction: column; min-height: 100dvh; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 6px 4px 22px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 16px; }
+.glyph {
+  width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+  background: linear-gradient(150deg, #5aa88b, #2f6b5a);
+  color: #fff;
+  display: grid; place-items: center;
+  font-family: var(--serif); font-weight: 700; font-size: 22px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 8px 18px -8px rgba(47, 107, 90, 0.6);
+}
+.brand b { font-family: var(--serif); font-size: 30px; font-weight: 500; display: block; letter-spacing: 0.02em; line-height: 1.1; white-space: nowrap; }
+.brand small { font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.06em; display: block; margin-top: 3px; }
+.top-right { display: flex; align-items: center; gap: 10px; }
+.streak { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-right: 10px; }
+.streak small { font-size: 11px; color: var(--ink-2); font-weight: 500; }
+.streak .dots { display: grid; grid-template-rows: repeat(7, 5px); grid-auto-flow: column; grid-auto-columns: 5px; gap: 2px; }
+.streak .dots i { display: block; width: 5px; height: 5px; border-radius: 1px; background: var(--fill-2); }
+.streak .dots i.on { background: var(--accent); }
+.streak .dots i.today { outline: 1px solid var(--accent); outline-offset: -1px; }
+.streak .dots i.fut { opacity: 0.4; }
+.quick { display: flex; gap: 6px; }
+.quick button {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 9px;
+  border: 1px solid var(--line); background: var(--card);
+  color: var(--ink-2); font-size: 12px; font-family: var(--mono); letter-spacing: 0.04em;
+  transition: all 0.15s;
+}
+.quick button:hover { border-color: var(--ink-3); color: var(--ink); }
+.nav { display: inline-flex; gap: 2px; margin: 18px 0 20px; padding: 4px; border-radius: 12px; background: var(--fill-2); border: 1px solid var(--line); align-self: flex-start; }
+.nav button {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 18px; border-radius: 9px;
+  border: 0; background: none;
+  color: var(--ink-2); font-size: 13.5px; font-weight: 500;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.nav button:hover { color: var(--ink); }
+.nav button.on { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(30, 41, 37, 0.08); }
+.nav .ico { display: none; }
+.ico {
+  width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+  display: grid; place-items: center;
+  font-size: 12px; font-family: var(--serif);
+  background: var(--fill-2); color: var(--ink-2);
+}
+.on .ico { background: var(--accent-soft); color: var(--accent); }
+main { flex: 1; }
+.view { display: none; animation: fade 0.35s ease both; }
+.view.on { display: grid; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } }
+.foot { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.foot a { color: var(--ink-3); text-decoration: none; font-family: var(--sans); font-size: 12px; }
+.foot a:hover { color: var(--ink); }
+.card-box { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); }
+
+/* ---------- 录制 ---------- */
+#view-rec.on { grid-template-columns: auto minmax(360px, 520px); gap: 28px; align-items: start; }
+.frame {
+  position: relative;
+  height: min(calc(100dvh - 210px), 860px);
+  aspect-ratio: 3 / 4;
+  background: #0b0d0c;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--line);
+}
+.frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.corner { position: absolute; width: 20px; height: 20px; border: 1.5px solid rgba(255, 255, 255, 0.45); pointer-events: none; z-index: 3; }
+.corner.tl { top: 14px; left: 14px; border-right: 0; border-bottom: 0; }
+.corner.tr { top: 14px; right: 14px; border-left: 0; border-bottom: 0; }
+.corner.bl { bottom: 14px; left: 14px; border-right: 0; border-top: 0; }
+.corner.br { bottom: 14px; right: 14px; border-left: 0; border-top: 0; }
+.hud { position: absolute; inset: 0; z-index: 2; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; color: #f2f5f3; }
+.hud-top {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 26px 34px;
+  background: linear-gradient(rgba(0, 0, 0, 0.5), transparent);
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
+  color: rgba(242, 245, 243, 0.9);
+}
+.rec-dot { width: 8px; height: 8px; border-radius: 50%; background: #e0584c; opacity: 0; }
+.recording .rec-dot { opacity: 1; animation: blink 1.1s steps(2) infinite; }
+@keyframes blink { to { opacity: 0.25; } }
+.cut { margin-left: auto; color: var(--hud); opacity: 0; transition: opacity 0.3s; }
+.recording .cut { opacity: 1; }
+.cut.paused::before { content: "‖ "; }
+.qcard { padding: 80px 26px 30px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.78)); font-family: var(--serif); }
+.qcard small { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--hud); margin-bottom: 10px; }
+.qcard p { font-size: 24px; line-height: 1.45; font-weight: 500; text-wrap: balance; border-left: 2px solid var(--hud); padding-left: 14px; }
+.qcard p.rise { animation: rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+.qcard .hint { margin-top: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: rgba(242, 245, 243, 0.5); min-height: 15px; }
+.thinking .qcard small::after { content: attr(data-thinking); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.35; } }
+.idle {
+  position: absolute; inset: 0; z-index: 4;
+  display: grid; place-items: center; text-align: center;
+  background: radial-gradient(ellipse at 50% 38%, #1c2622, #0a0d0c 72%);
+  color: #f2f5f3;
+}
+.idle.off { display: none; }
+.idle p { font-size: 13px; color: #6b7a73; margin-top: 18px; letter-spacing: 0.06em; }
+.idle button {
+  width: 124px; height: 124px; border-radius: 50%;
+  border: 1px solid rgba(169, 220, 195, 0.7);
+  background: rgba(169, 220, 195, 0.07);
+  color: var(--hud); font-size: 15px; letter-spacing: 0.2em; text-indent: 0.2em; font-family: var(--serif);
+  transition: background 0.2s, transform 0.15s;
+}
+.idle button:hover { background: rgba(169, 220, 195, 0.16); }
+.idle button:active { transform: scale(0.96); }
+.count {
+  position: absolute; inset: 0; z-index: 5; display: none; place-items: center;
+  font-family: var(--serif); font-size: 140px; font-weight: 700; line-height: 1; color: var(--hud);
+  text-shadow: 0 12px 50px rgba(0, 0, 0, 0.7); background: rgba(0, 0, 0, 0.25);
+}
+.counting .count { display: grid; }
+.count span { animation: tick 1s ease both; }
+@keyframes tick { from { opacity: 0; transform: scale(1.3); } 30% { opacity: 1; transform: none; } }
+
+.panel { display: flex; flex-direction: column; gap: 16px; height: min(calc(100dvh - 210px), 860px); background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 20px 22px 18px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--ink); }
+.panel-head #todayLabel { font-family: var(--mono); font-weight: 400; font-size: 11.5px; color: var(--ink-3); letter-spacing: 0.06em; }
+.pill { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px 4px 9px; color: var(--ink-2); font-size: 12px; font-weight: 500; transition: all 0.3s; background: var(--fill); }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); transition: background 0.3s; }
+.recording .pill { border-color: rgba(214, 75, 63, 0.4); color: var(--red); background: rgba(214, 75, 63, 0.06); }
+.recording .pill::before { background: var(--red); animation: blink 1.1s steps(2) infinite; }
+.log { flex: 1; overflow: auto; list-style: none; border-top: 1px solid var(--line); min-height: 120px; }
+.log li { padding: 13px 2px; border-bottom: 1px solid var(--line-2); animation: fade 0.35s ease both; }
+.log li b { display: block; font-weight: 500; font-size: 14px; color: var(--accent); line-height: 1.5; font-family: var(--serif); }
+.log li b i { font-style: normal; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--ink-3); margin-right: 8px; }
+.log li p { font-size: 14px; color: var(--ink-2); margin-top: 6px; line-height: 1.65; }
+.log li.cur p { color: var(--ink); }
+.log li.cur p:empty::before { content: "…"; color: var(--ink-3); }
+.log li.cur p::after { content: "▍"; color: var(--accent); animation: blink 1s steps(2) infinite; margin-left: 2px; }
+.log li.pending p::after { content: attr(data-pending); font-family: var(--mono); font-size: 11px; color: var(--ink-3); animation: pulse 1.2s infinite; }
+.log .empty { padding: 30px 2px; color: var(--ink-3); font-size: 13px; line-height: 1.8; border: 0; }
+.meters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.m { border: 1px solid var(--line); border-radius: var(--r); padding: 10px 13px; background: var(--fill); }
+.m small { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--ink-3); text-transform: uppercase; }
+.m b { display: block; font-family: var(--mono); font-size: 20px; font-weight: 500; margin-top: 4px; }
+.m b.amber { color: var(--accent); }
+.vu { position: relative; height: 3px; background: var(--fill-2); border-radius: 2px; margin: 2px 2px 0; }
+.vu i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 2px; transition: width 0.06s linear; }
+.vu b { position: absolute; top: -4px; width: 1px; height: 11px; background: var(--ink-2); left: 40%; }
+.controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: center; padding: 6px 0 0; }
+.ghost {
+  min-width: 56px; height: 52px; border-radius: 26px; padding: 0 16px;
+  border: 1px solid var(--line); background: var(--card);
+  color: var(--ink-2); font-size: 12.5px; font-weight: 500;
+  transition: border-color 0.2s, color 0.2s, opacity 0.2s, background 0.2s;
+}
+.ghost:hover { border-color: var(--ink-3); color: var(--ink); background: var(--fill); }
+.ghost:disabled { opacity: 0.3; }
+.shutter { width: 78px; height: 78px; border-radius: 50%; border: 3px solid var(--ink); background: transparent; display: grid; place-items: center; padding: 0; transition: transform 0.15s; }
+.shutter:active { transform: scale(0.95); }
+.shutter i { width: 62px; height: 62px; border-radius: 50%; background: var(--red); transition: all 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.recording .shutter i { width: 28px; height: 28px; border-radius: 6px; }
+.filters { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: var(--card); color: var(--ink-2); font-size: 12px; padding: 6px 12px; border-radius: 999px; transition: all 0.2s; }
+.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.chip.on { border-color: var(--accent-soft-2); color: var(--accent); background: var(--accent-soft); font-weight: 500; }
+.status { text-align: center; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); min-height: 16px; letter-spacing: 0.02em; line-height: 1.5; }
+.status.err { color: var(--red); }
+
+/* ---------- 日历 ---------- */
+#view-cal.on { grid-template-columns: minmax(380px, 520px) minmax(380px, 1fr); gap: 24px; align-items: start; }
+.cal { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 22px 24px 20px; }
+.cal-head { display: flex; align-items: flex-end; justify-content: space-between; padding: 0 0 16px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+.cal-head small { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--ink-3); margin-bottom: 8px; }
+.cal-head h2 { font-family: var(--serif); font-size: 32px; font-weight: 500; line-height: 1; }
+.cal-nav { display: flex; gap: 8px; }
+.cal-nav button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--ink-2); font-size: 16px; }
+.cal-nav button:hover { border-color: var(--ink-3); color: var(--ink); background: var(--fill); }
+.wd { display: grid; grid-template-columns: repeat(7, 1fr); font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-3); text-align: center; margin-bottom: 8px; }
+.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.day { aspect-ratio: 3 / 4; border-radius: 9px; background: var(--fill); position: relative; overflow: hidden; border: 1px solid var(--line-2); transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; }
+.day.pad { background: transparent; border-color: transparent; }
+.day img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.day.has::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(0, 0, 0, 0.45), transparent 45%); }
+.day span { position: absolute; top: 6px; left: 8px; z-index: 1; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); }
+.day.has span { color: #fff; }
+.day.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.day.today:not(.has) { background: var(--accent-soft); }
+.day.today:not(.has) span { color: var(--accent); font-weight: 500; }
+.day.sel { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.day.has { cursor: pointer; }
+.day.has:hover { transform: translateY(-2px); }
+.day b { position: absolute; right: 6px; bottom: 6px; z-index: 1; font-family: var(--mono); font-size: 9px; font-weight: 500; background: var(--accent); color: var(--accent-ink); padding: 1px 5px; border-radius: 999px; }
+.cal-foot { margin-top: 18px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 12px; line-height: 1.6; }
+.detail { position: sticky; top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 22px 26px 24px; }
+.detail .placeholder { color: var(--ink-3); font-size: 14px; line-height: 1.9; padding: 70px 0; text-align: center; border: 1px dashed var(--line); border-radius: var(--r); background: var(--fill); }
+.meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--ink-3); }
+.title-in { font-family: var(--serif); font-size: 26px; font-weight: 500; background: none; border: 0; border-bottom: 1px dashed var(--line); padding: 8px 0 6px; color: var(--ink); width: 100%; outline: none; margin-top: 6px; }
+.title-in:focus { border-bottom-color: var(--accent); }
+.day-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0 2px; }
+.saved {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 14px 0 0; padding: 10px 14px;
+  border-radius: var(--r); border: 1px solid var(--line); background: var(--fill);
+  font-size: 12.5px; color: var(--ink-2);
+}
+.saved.warn { border-color: var(--accent-soft-2); background: var(--accent-soft); color: var(--ink); }
+.saved .fld { font-family: var(--mono); font-size: 11.5px; color: var(--accent); }
+.saved .sp { flex: 1; }
+.player { position: relative; margin: 16px 0 8px; display: flex; gap: 20px; align-items: flex-start; }
+.player video { height: min(50vh, 540px); aspect-ratio: 3 / 4; background: #000; border-radius: var(--r-lg); display: block; object-fit: contain; flex-shrink: 0; box-shadow: var(--shadow-lg); }
+.player .aside { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 10px; }
+.file { border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; background: var(--fill); }
+.file b { font-weight: 600; display: block; font-size: 14px; }
+.file span { font-family: var(--mono); font-size: 11px; color: var(--ink-3); line-height: 1.6; display: block; margin-top: 3px; }
+.file .acts { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.qa { list-style: none; margin-top: 10px; }
+.qa li { padding: 11px 0; border-top: 1px solid var(--line-2); }
+.qa li b { display: block; font-weight: 500; font-size: 14px; color: var(--accent); font-family: var(--serif); }
+.qa li p { font-size: 14px; color: var(--ink-2); margin-top: 5px; line-height: 1.6; }
+.qa li time { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); margin-left: 8px; }
+.actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 20px; }
+
+/* ---------- 通用控件 ---------- */
+.btn { border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: 9px; transition: all 0.15s; white-space: nowrap; font-family: var(--sans); }
+.btn:hover { border-color: var(--ink-3); background: var(--fill); }
+.btn.amber { border-color: var(--accent-soft-2); color: var(--accent); background: var(--accent-soft); }
+.btn.amber:hover { border-color: var(--accent); }
+.btn.danger { color: var(--red); border-color: rgba(214, 75, 63, 0.35); }
+.btn.danger:hover { background: rgba(214, 75, 63, 0.06); }
+.btn.solid { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.solid:hover { background: var(--accent-2); border-color: var(--accent-2); }
+.btn.sm { padding: 6px 11px; font-size: 12px; border-radius: 8px; }
+.btn:disabled { opacity: 0.4; }
+input[type=text], input[type=password], input[type=url], textarea, select {
+  background: var(--input); border: 1px solid var(--line); color: var(--ink);
+  font-family: var(--sans); font-size: 13.5px; padding: 8px 11px; border-radius: 9px; width: 100%; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+textarea { min-height: 120px; line-height: 1.7; resize: vertical; font-family: var(--serif); font-size: 14px; }
+.range { display: flex; align-items: center; gap: 10px; }
+input[type=range] { accent-color: var(--accent); width: 150px; }
+.range output { font-family: var(--mono); font-size: 12px; color: var(--ink-2); min-width: 54px; text-align: right; }
+.switch { appearance: none; -webkit-appearance: none; width: 40px; height: 24px; border-radius: 12px; background: var(--fill-2); border: 1px solid var(--line); position: relative; cursor: pointer; flex-shrink: 0; transition: background 0.2s; margin: 0; }
+.switch::before { content: ""; position: absolute; top: 1px; left: 1px; width: 20px; height: 20px; border-radius: 50%; background: var(--knob); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); transition: transform 0.2s; }
+.switch:checked { background: var(--accent); border-color: var(--accent); }
+.switch:checked::before { transform: translateX(16px); }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; flex-shrink: 0; background: var(--fill-2); padding: 2px; gap: 2px; }
+.seg button { background: none; border: 0; color: var(--ink-2); padding: 5px 11px; font-size: 12.5px; border-radius: 7px; transition: all 0.15s; font-family: var(--sans); font-weight: 500; }
+.seg button:hover { color: var(--ink); }
+.seg button.on { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(30, 41, 37, 0.1); }
+
+/* ---------- 弹窗 ---------- */
+.modal { position: fixed; inset: 0; z-index: 30; display: none; place-items: center; background: var(--scrim); backdrop-filter: blur(14px) saturate(1.1); -webkit-backdrop-filter: blur(14px) saturate(1.1); font-family: var(--sans); }
+.modal.on { display: grid; }
+.win {
+  background: var(--win);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 50px 140px -20px rgba(30, 41, 37, 0.45);
+  animation: pop 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  overflow: hidden;
+}
+@keyframes pop { from { opacity: 0; transform: translateY(14px) scale(0.985); } }
+.dots { display: flex; gap: 7px; padding: 14px 14px 12px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; border: 0; padding: 0; background: var(--line); cursor: default; }
+.dot.close { background: #ff5f57; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15); cursor: pointer; position: relative; }
+.dot.close:hover::after { content: "×"; position: absolute; inset: 0; font-size: 11px; line-height: 12px; text-align: center; color: rgba(0, 0, 0, 0.6); font-weight: 700; }
+.settings-win { width: min(900px, 94vw); height: min(660px, 90vh); display: grid; grid-template-columns: 216px 1fr; }
+.win-side { background: var(--fill); border-right: 1px solid var(--line-2); display: flex; flex-direction: column; }
+.win-side nav { padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; }
+.win-side nav button {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 7px 10px; border-radius: 9px; border: 0; background: none;
+  color: var(--ink-2); font-size: 13px; font-weight: 500; transition: background 0.15s, color 0.15s;
+}
+.win-side nav button:hover { background: var(--fill-2); color: var(--ink); }
+.win-side nav button.on { background: var(--accent); color: var(--accent-ink); }
+.win-side nav button.on .ico { background: rgba(255, 255, 255, 0.18); color: inherit; }
+.win-pane { padding: 26px 30px 30px; overflow: auto; }
+.win-pane h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.01em; }
+.win-pane .lead { font-size: 12.5px; color: var(--ink-3); margin-bottom: 18px; line-height: 1.6; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); margin-bottom: 14px; }
+.card .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 11px 14px; border-top: 1px solid var(--line-2); font-size: 13.5px; }
+.card .row:first-child { border-top: 0; }
+.card .row.col { flex-direction: column; align-items: stretch; gap: 8px; }
+.card .row label { color: var(--ink); font-weight: 500; }
+.card .row .sub { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 2px; line-height: 1.5; font-weight: 400; }
+.card-note { font-size: 12px; color: var(--ink-3); padding: 0 6px 14px; line-height: 1.65; }
+.card-note code, .sub code { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+.presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.pane { display: none; }
+.pane.on { display: block; animation: fade 0.25s ease both; }
+.about { text-align: center; padding: 20px 0 0; }
+.about .glyph { width: 64px; height: 64px; border-radius: 18px; font-size: 30px; margin: 0 auto 14px; }
+.about h3 { font-family: var(--serif); font-size: 22px; font-weight: 500; }
+.about p { color: var(--ink-3); font-size: 12.5px; margin-top: 6px; line-height: 1.7; }
+.fld-row { display: flex; align-items: center; gap: 8px; }
+.fld-row .fld { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+
+.welcome-win { width: min(580px, 92vw); padding: 0 0 26px; }
+.welcome-win .body { padding: 22px 42px 0; text-align: center; }
+.welcome-win .glyph { width: 72px; height: 72px; border-radius: 20px; font-size: 34px; margin: 0 auto 18px; }
+.welcome-win h1 { font-family: var(--serif); font-size: 28px; font-weight: 500; letter-spacing: 0.04em; }
+.welcome-win .sub { color: var(--ink-2); font-size: 14px; margin-top: 8px; line-height: 1.7; }
+.feats { text-align: left; margin: 26px 0 8px; display: flex; flex-direction: column; gap: 16px; }
+.feat { display: flex; gap: 14px; align-items: flex-start; }
+.feat .ico { width: 34px; height: 34px; border-radius: 10px; font-size: 16px; background: var(--accent-soft); color: var(--accent); }
+.feat b { display: block; font-size: 14px; font-weight: 600; }
+.feat p { font-size: 12.5px; color: var(--ink-3); line-height: 1.6; margin-top: 2px; }
+.welcome-win .foot { display: flex; align-items: center; justify-content: space-between; padding: 22px 42px 0; gap: 12px; margin: 0; border: 0; font-family: var(--sans); }
+.check { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-3); cursor: pointer; user-select: none; }
+.check input { accent-color: var(--accent); width: 15px; height: 15px; }
+.lang-row { display: flex; gap: 6px; justify-content: center; margin-top: 4px; }
+
+/* ---------- 窄屏兜底 ---------- */
+@media (max-width: 1000px) {
+  .app { padding: 16px 16px 32px; }
+  .top { flex-wrap: wrap; }
+  .streak { display: none; }
+  #view-rec.on, #view-cal.on { grid-template-columns: 1fr; gap: 20px; justify-items: stretch; }
+  .frame { height: auto; width: min(100%, 520px); margin: 0 auto; }
+  .panel { height: auto; }
+  .log { max-height: 240px; }
+  .settings-win { grid-template-columns: 1fr; height: min(90vh, 720px); }
+  .win-side { border-right: 0; border-bottom: 1px solid var(--line-2); }
+  .win-side nav { flex-direction: row; flex-wrap: wrap; }
+  .player { flex-direction: column; }
+  .player video { height: auto; width: 100%; }
+  .detail { position: static; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="glyph">记</div>
+      <div><b data-i18n="brand">视频日志</b><small>cam.baidou.work</small></div>
+    </div>
+    <div class="top-right">
+      <div class="streak" id="streak"><small id="streakLabel"></small><div class="dots" id="streakDots"></div></div>
+      <div class="quick">
+        <button id="btnTheme" title="主题"></button>
+        <button id="btnLang" title="Language"></button>
+      </div>
+      <button class="btn" id="btnSettings"><span data-i18n="nav.settings">设置</span></button>
+    </div>
+  </header>
+  <nav class="nav">
+    <button data-view="rec" class="on"><span class="ico">录</span><span data-i18n="nav.rec">录制</span></button>
+    <button data-view="cal"><span class="ico">历</span><span data-i18n="nav.cal">日历</span></button>
+  </nav>
+
+  <main>
+    <!-- 录制 -->
+    <section id="view-rec" class="view on">
+      <div class="frame" id="frame">
+        <canvas id="cv" width="1080" height="1440"></canvas>
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div class="hud">
+          <div class="hud-top">
+            <span class="rec-dot"></span>
+            <span id="tc">00:00</span>
+            <span class="cut" id="cutInfo"></span>
+          </div>
+          <div class="qcard">
+            <small id="qMeta"></small>
+            <p id="qText"></p>
+            <div class="hint" id="qHint"></div>
+          </div>
+        </div>
+        <div class="count" id="count"></div>
+        <div class="idle" id="idle">
+          <div>
+            <button id="btnCam" data-i18n="idle.btn">开启相机</button>
+            <p data-i18n="idle.sub">竖版 3:4 · 只存在这台电脑</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span id="todayLabel"></span>
+          <span class="pill" id="pill"></span>
+        </div>
+        <ol class="log" id="log"></ol>
+        <div class="meters">
+          <div class="m"><small data-i18n="m.dur">时长</small><b id="mTc">00:00</b></div>
+          <div class="m"><small data-i18n="m.cut">剪去沉默</small><b class="amber" id="mCut">00:00</b></div>
+          <div class="m"><small data-i18n="m.seg">段 / 阈值</small><b id="mSeg">0 / —</b></div>
+        </div>
+        <div class="vu"><i id="vu"></i><b id="vuThr"></b></div>
+        <div class="controls">
+          <button class="ghost" id="btnMirror" data-i18n="btn.mirror">镜像</button>
+          <button class="shutter" id="btnShutter" data-i18n-title="btn.shutter"><i></i></button>
+          <button class="ghost" id="btnNext" disabled data-i18n="btn.next">下一题</button>
+        </div>
+        <div class="filters" id="filters"></div>
+        <p class="status" id="status"></p>
+      </div>
+    </section>
+
+    <!-- 日历 -->
+    <section id="view-cal" class="view">
+      <div class="cal">
+        <header class="cal-head">
+          <div><small id="calYear"></small><h2 id="calTitle"></h2></div>
+          <div class="cal-nav">
+            <button id="calPrev" aria-label="prev">‹</button>
+            <button id="calNext" aria-label="next">›</button>
+          </div>
+        </header>
+        <div class="wd" id="wd"></div>
+        <div class="grid" id="grid"></div>
+        <footer class="cal-foot"><span id="calStat"></span><span id="calUsage"></span></footer>
+      </div>
+      <div class="detail" id="detail"></div>
+    </section>
+  </main>
+  <footer class="foot"><span id="sideUsage"></span><a href="https://d.baidou.work/" data-i18n="back">← 白豆工具箱</a></footer>
+</div>
+
+<!-- 设置 -->
+<div class="modal" id="settingsModal">
+  <div class="win settings-win">
+    <div class="win-side">
+      <div class="dots"><button class="dot close" id="btnCloseSettings"></button><span class="dot"></span><span class="dot"></span></div>
+      <nav id="paneNav">
+        <button data-pane="q" class="on"><span class="ico">问</span><span data-i18n="pane.q">问题与流程</span></button>
+        <button data-pane="cover"><span class="ico">封</span><span data-i18n="pane.cover">字幕与封面</span></button>
+        <button data-pane="cut"><span class="ico">剪</span><span data-i18n="pane.cut">沉默剪辑</span></button>
+        <button data-pane="img"><span class="ico">画</span><span data-i18n="pane.img">画面与外观</span></button>
+        <button data-pane="ai"><span class="ico">智</span><span data-i18n="pane.ai">AI 接口</span></button>
+        <button data-pane="data"><span class="ico">存</span><span data-i18n="pane.data">保存与数据</span></button>
+        <button data-pane="about"><span class="ico">关</span><span data-i18n="pane.about">关于</span></button>
+      </nav>
+    </div>
+    <div class="win-pane">
+      <div class="pane on" data-pane="q">
+        <h2 data-i18n="pane.q">问题与流程</h2>
+        <p class="lead" data-i18n="q.lead"></p>
+        <div class="card">
+          <div class="row col">
+            <label><span data-i18n="q.preset">预设问题</span> <span class="sub" data-i18n="q.presetSub">每行一个</span></label>
+            <textarea data-k="questions" spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <label><span data-i18n="q.ai">AI 追问</span><span class="sub" data-i18n="q.aiSub"></span></label>
+            <div class="seg" data-k="aiFollowUps"><button data-v="0" data-i18n="off">关</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="5">5</button></div>
+          </div>
+          <div class="row">
+            <label><span data-i18n="q.auto">沉默自动下一题</span><span class="sub" data-i18n="q.autoSub"></span></label>
+            <div class="seg" data-k="autoAdvanceSec"><button data-v="0" data-i18n="off">关</button><button data-v="4">4s</button><button data-v="6">6s</button><button data-v="9">9s</button></div>
+          </div>
+          <div class="row">
+            <label><span data-i18n="q.speak">朗读问题</span><span class="sub" data-i18n="q.speakSub"></span></label>
+            <input type="checkbox" class="switch" data-k="speak">
+          </div>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="cover">
+        <h2 data-i18n="pane.cover">字幕与封面</h2>
+        <p class="lead" data-i18n="cover.lead"></p>
+        <div class="card">
+          <div class="row">
+            <label><span data-i18n="cover.burn">把问题烙进视频</span><span class="sub" data-i18n="cover.burnSub"></span></label>
+            <div class="seg" data-k="burnTarget" data-str="1"><button data-v="share" data-i18n="cover.share">分享版</button><button data-v="both" data-i18n="cover.both">两个都</button><button data-v="off" data-i18n="off">关</button></div>
+          </div>
+          <div class="row">
+            <label><span data-i18n="cover.intro">片头封面卡</span><span class="sub" data-i18n="cover.introSub"></span></label>
+            <div class="seg" data-k="introSec"><button data-v="0" data-i18n="off">关</button><button data-v="2">2s</button><button data-v="3">3s</button></div>
+          </div>
+          <div class="row col">
+            <label><span data-i18n="cover.text">封面文字</span><span class="sub" data-i18n="cover.textSub"></span></label>
+            <input type="text" data-k="coverText" autocomplete="off">
+          </div>
+        </div>
+        <p class="card-note" data-i18n="cover.note"></p>
+      </div>
+
+      <div class="pane" data-pane="cut">
+        <h2 data-i18n="pane.cut">沉默剪辑</h2>
+        <p class="lead" data-i18n="cut.lead"></p>
+        <div class="card">
+          <div class="row">
+            <label><span data-i18n="cut.thr">说话判定阈值</span><span class="sub"><span data-i18n="cut.thrSub">实时音量：</span><span id="dbLive" style="font-family:var(--mono)">—</span></span></label>
+            <div class="range"><input type="range" min="-60" max="-20" step="1" data-k="thresholdDb"><output></output></div>
+          </div>
+          <div class="row">
+            <label><span data-i18n="cut.gap">多久算沉默</span><span class="sub" data-i18n="cut.gapSub"></span></label>
+            <div class="range"><input type="range" min="500" max="3000" step="100" data-k="gapMs"><output></output></div>
+          </div>
+          <div class="row">
+            <label><span data-i18n="cut.cal">开录前自动校准</span><span class="sub" data-i18n="cut.calSub"></span></label>
+            <input type="checkbox" class="switch" data-k="autoCal">
+          </div>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="img">
+        <h2 data-i18n="pane.img">画面与外观</h2>
+        <p class="lead" data-i18n="img.lead"></p>
+        <div class="card">
+          <div class="row">
+            <label><span data-i18n="img.beauty">美颜</span><span class="sub" data-i18n="img.beautySub"></span></label>
+            <div class="seg" data-k="beauty"><button data-v="0" data-i18n="off">关</button><button data-v="1" data-i18n="lv1">轻</button><button data-v="2" data-i18n="lv2">中</button><button data-v="3" data-i18n="lv3">重</button></div>
+          </div>
+          <div class="row">
+            <label data-i18n="img.mirror">镜像预览</label>
+            <input type="checkbox" class="switch" data-k="mirror">
+          </div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <label><span data-i18n="img.orig">原画码率</span><span class="sub">1080×1440</span></label>
+            <div class="seg" data-k="origMbps"><button data-v="4">4M</button><button data-v="8">8M</button><button data-v="12">12M</button></div>
+          </div>
+          <div class="row">
+            <label><span data-i18n="img.share">分享版码率</span><span class="sub" data-i18n="img.shareSub">720×960，方便发群</span></label>
+            <div class="seg" data-k="shareMbps"><button data-v="0.8">0.8M</button><button data-v="1.5">1.5M</button><button data-v="2.5">2.5M</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <label data-i18n="img.theme">外观</label>
+            <div class="seg" data-k="theme" data-str="1"><button data-v="auto" data-i18n="theme.auto">跟随系统</button><button data-v="light" data-i18n="theme.light">亮</button><button data-v="dark" data-i18n="theme.dark">暗</button></div>
+          </div>
+          <div class="row">
+            <label data-i18n="img.lang">语言 / Language</label>
+            <div class="seg" data-k="lang" data-str="1"><button data-v="zh">中文</button><button data-v="en">English</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="ai">
+        <h2 data-i18n="pane.ai">AI 接口</h2>
+        <p class="lead" data-i18n="ai.lead"></p>
+        <div class="card">
+          <div class="row col">
+            <label data-i18n="ai.presets">快速填入</label>
+            <div class="presets">
+              <button class="btn sm" data-preset="qwen" data-i18n="ai.p.qwen">阿里云百炼</button>
+              <button class="btn sm" data-preset="silicon" data-i18n="ai.p.silicon">硅基流动</button>
+              <button class="btn sm" data-preset="deepseek">DeepSeek</button>
+              <button class="btn sm" data-preset="openai">OpenAI</button>
+            </div>
+          </div>
+          <div class="row col">
+            <label><span data-i18n="ai.base">接口地址</span> <span class="sub" data-i18n-html="ai.baseSub"></span></label>
+            <input type="url" data-k="ai.baseUrl" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1" autocomplete="off">
+          </div>
+          <div class="row col">
+            <label><span>API Key</span> <span class="sub" data-i18n="ai.keySub"></span></label>
+            <input type="password" data-k="ai.apiKey" placeholder="sk-…" autocomplete="off">
+          </div>
+          <div class="row col">
+            <label><span data-i18n="ai.model">对话模型</span> <span class="sub" data-i18n="ai.modelSub"></span></label>
+            <input type="text" data-k="ai.model" placeholder="qwen-plus" autocomplete="off">
+          </div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <label><span data-i18n="ai.asr">语音识别方式</span><span class="sub" data-i18n="ai.asrSub"></span></label>
+            <div class="seg" data-k="ai.asrMode" data-str="1"><button data-v="qwen" data-i18n="ai.asr.qwen">百炼</button><button data-v="whisper" data-i18n="ai.asr.whisper">兼容</button><button data-v="browser" data-i18n="ai.asr.browser">浏览器</button><button data-v="off" data-i18n="off">关</button></div>
+          </div>
+          <div class="row col">
+            <label data-i18n="ai.asrModel">识别模型</label>
+            <input type="text" data-k="ai.asrModel" placeholder="qwen3-asr-flash" autocomplete="off">
+          </div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <span class="card-note" style="padding:0" id="aiTestMsg"></span>
+            <button class="btn amber sm" id="btnAiTest" data-i18n="ai.test">测试连接</button>
+          </div>
+        </div>
+        <p class="card-note" data-i18n="ai.note"></p>
+      </div>
+
+      <div class="pane" data-pane="data">
+        <h2 data-i18n="pane.data">保存与数据</h2>
+        <p class="lead" data-i18n="data.lead"></p>
+        <div class="card">
+          <div class="row">
+            <label><span data-i18n="data.folder">保存文件夹</span><span class="sub" id="folderSub"></span></label>
+            <div class="fld-row"><span class="fld" id="folderName"></span><button class="btn sm" id="btnFolder" data-i18n="data.choose">选择</button><button class="btn sm" id="btnFolderClear" data-i18n="data.clear">清除</button></div>
+          </div>
+          <div class="row">
+            <label><span data-i18n="data.notes">同时保存文字稿</span><span class="sub" data-i18n="data.notesSub"></span></label>
+            <input type="checkbox" class="switch" data-k="saveNotes">
+          </div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <label><span data-i18n="data.storage">浏览器内存储</span><span class="sub" id="usage">—</span></label>
+            <button class="btn danger sm" id="btnWipe" data-i18n="data.wipe">清空全部</button>
+          </div>
+          <div class="row">
+            <label><span data-i18n="data.welcome">首次介绍</span><span class="sub" data-i18n="data.welcomeSub"></span></label>
+            <button class="btn sm" id="btnShowWelcome" data-i18n="data.again">再看一次</button>
+          </div>
+        </div>
+        <p class="card-note" data-i18n="data.note"></p>
+      </div>
+
+      <div class="pane" data-pane="about">
+        <div class="about">
+          <div class="glyph">记</div>
+          <h3 data-i18n="brand">视频日志</h3>
+          <p data-i18n-html="about.text"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 首次介绍 -->
+<div class="modal" id="welcomeModal">
+  <div class="win welcome-win">
+    <div class="dots"><button class="dot close" id="btnCloseWelcome"></button><span class="dot"></span><span class="dot"></span></div>
+    <div class="body">
+      <div class="glyph">记</div>
+      <h1 data-i18n="brand">视频日志</h1>
+      <p class="sub" data-i18n-html="w.sub"></p>
+      <div class="lang-row">
+        <button class="chip" data-lang="zh">中文</button>
+        <button class="chip" data-lang="en">English</button>
+      </div>
+      <div class="feats">
+        <div class="feat"><span class="ico">问</span><div><b data-i18n="w.f1">问题出现在画面上</b><p data-i18n="w.f1s"></p></div></div>
+        <div class="feat"><span class="ico">剪</span><div><b data-i18n="w.f2">沉默自动剪掉</b><p data-i18n="w.f2s"></p></div></div>
+        <div class="feat"><span class="ico">封</span><div><b data-i18n="w.f3">字幕、封面、自动命名</b><p data-i18n="w.f3s"></p></div></div>
+        <div class="feat"><span class="ico">存</span><div><b data-i18n="w.f4">直接存到你的文件夹</b><p data-i18n="w.f4s"></p></div></div>
+      </div>
+    </div>
+    <div class="foot">
+      <label class="check"><input type="checkbox" id="welcomeNoMore"> <span data-i18n="w.nomore">不再显示</span></label>
+      <button class="btn solid" id="btnWelcomeGo" data-i18n="w.go">开始使用</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ---------- 工具 ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const pad = n => String(n).padStart(2, '0');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const fmtTime = ms => { const s = Math.max(0, Math.round(ms / 1000)); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
+const fmtBytes = b => b < 1048576 ? (b / 1024).toFixed(0) + ' KB' : b < 1073741824 ? (b / 1048576).toFixed(1) + ' MB' : (b / 1073741824).toFixed(2) + ' GB';
+const isoDate = (d = new Date()) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const CN_NUM = '〇一二三四五六七八九';
+const cnYear = y => String(y).split('').map(c => CN_NUM[+c]).join('');
+const cnDay = d => d < 10 ? CN_NUM[d] : d < 20 ? '十' + (d % 10 ? CN_NUM[d % 10] : '') : (d < 30 ? '二十' : '三十') + (d % 10 ? CN_NUM[d % 10] : '');
+const CN_MONTH = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+const EN_MONTH = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const EN_WD = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const CN_WD = ['日', '一', '二', '三', '四', '五', '六'];
+const getPath = (o, p) => p.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
+const setPath = (o, p, v) => { const ks = p.split('.'); const last = ks.pop(); const t = ks.reduce((a, k) => (a[k] = a[k] || {}), o); t[last] = v; };
+
+/* ---------- 文案 ---------- */
+const I18N = {
+  zh: {
+    brand: '视频日志', 'nav.rec': '录制', 'nav.cal': '日历', 'nav.settings': '设置', back: '← 白豆工具箱',
+    'idle.btn': '开启相机', 'idle.sub': '竖版 3:4 · 只存在这台电脑',
+    'pill.idle': '待机', 'pill.preview': '预览', 'pill.count': '倒数', 'pill.rec': '录制中', 'pill.finish': '整理中',
+    'm.dur': '时长', 'm.cut': '剪去沉默', 'm.seg': '段 / 阈值', cut: '剪去 {0}',
+    'btn.mirror': '镜像', 'btn.next': '下一题', 'btn.shutter': '开始 / 结束（空格）',
+    'log.empty': '开录后，问题和你说的话会按顺序出现在这里。<br>说「回答完了」进入下一题。', 'log.none': '（没有识别到文字）', pending: ' 识别中…', thinking: ' · 在想下一个问题',
+    'q.frame': '取景', 'q.frameHint': '看看光线和构图，选个滤镜', 'q.ready': '准备', 'q.readyHint': '找好角度，倒数结束就开始',
+    'q.intro': '片头', 'q.introHint': '封面卡正在录入，先别说话', 'q.label': '问题 {0} / {1}', 'q.aiTag': ' · AI 追问', 'q.aiWait': '问题 {0} · AI',
+    'q.finishing': '整理中', 'q.finishingHint': '正在收尾，别关页面',
+    'hint.voiceNext': '说「回答完了」下一题', 'hint.voiceEnd': '说「结束录制」收尾', 'hint.tapNext': '点画面 / 空格 下一题', 'hint.shutterEnd': '按快门结束',
+    'hint.auto': '沉默 {0}s 自动下一题', 'hint.silent': '沉默中 · {0}s 后下一题', 'hint.wait': '等识别结果…',
+    'f.none': '原色', 'f.warm': '暖调', 'f.cool': '冷调', 'f.film': '胶片', 'f.soft': '柔光', 'f.mono': '黑白',
+    's.noCam': '相机未开启', 's.opening': '正在打开相机…', 's.preview': '预览中 · 按快门或空格开始（有 3 秒倒数）', 's.noFilter': ' · 此浏览器不支持录进滤镜',
+    's.camFail': '打不开相机：{0}', 's.denied': '没有授权', 's.noMedia': '这个浏览器不支持摄像头（需要 HTTPS 或 localhost）', 's.cancel': '已取消',
+    's.recFail': '无法创建录制器：{0}', 's.thr': '阈值 {0} dB', 's.amb': '（环境 {0} dB）', 's.asr': ' · 识别：', 's.asrBrowser': '浏览器',
+    's.noKey': '还没填 API Key，这次没有语音识别', 's.asrFail': '识别失败：{0}', 's.speechFail': '浏览器语音识别不可用（{0}）· 建议在设置里改用百炼识别',
+    's.aiFail': 'AI 追问失败：{0}', 's.wrap': '正在封装视频…', 's.wait': '等最后几句识别…', 's.short': '太短了，没有保存', 's.title': '正在起标题…', 's.cover': '正在生成封面…',
+    's.saving': '正在写入文件夹…', 's.saved': '已保存 · 原画 {0} / 分享版 {1}', 's.savedTo': ' · 已存入「{0}」', 's.saveFail': '保存失败：{0}', 's.fsFail': '写入文件夹失败：{0}', 's.fsPerm': '没拿到文件夹写入权限，这次只存在浏览器里；下次开录时会再询问',
+    's.mirrorOn': '镜像：开', 's.mirrorOff': '镜像：关', 's.bg': '切到后台时画面会停住，请回到这个页面', 's.noRecorder': '这个浏览器不支持 MediaRecorder，换 Chrome 试试', 's.insecure': '需要 HTTPS 或 localhost 才能使用摄像头',
+    'cal.wd': '一,二,三,四,五,六,日', streak: '连续 {0} 天', 'cal.stat': '本月 {0} 篇 · {1}  |  共 {2} 篇', usage: '已用 {0} / 约 {1}',
+    'd.placeholder': '点一个有封面的日子，在这里回看。<br>录完的新日志也会出现在这里。', 'd.orig': '原画', 'd.share': '分享版', 'd.cover': '封面', 'd.origSub': '完整未剪', 'd.shareSub': '剪去 {0} 段沉默 {1}',
+    'd.saveAs': '另存为…', 'd.shareBtn': '分享', 'd.del': '删除这条', 'd.noText': '（没有文字转写）', 'd.seeShare': '看分享版', 'd.seeOrig': '看原画',
+    'd.savedTo': '已自动保存到', 'd.notSaved': '还没选保存文件夹。选一个之后，每次录完自动把原画、分享版、封面存进去。', 'd.choose': '选择文件夹', 'd.fsNo': '此浏览器不支持自动保存到文件夹，请用「另存为」。',
+    'd.delConfirm': '删除「{0}」？浏览器里的原画和分享版都会删掉（文件夹里的不受影响）。', 'd.wipeConfirm': '删除浏览器里所有视频日志？不可恢复（文件夹里的文件不受影响）。',
+    'pane.q': '问题与流程', 'pane.cover': '字幕与封面', 'pane.cut': '沉默剪辑', 'pane.img': '画面与外观', 'pane.ai': 'AI 接口', 'pane.data': '保存与数据', 'pane.about': '关于',
+    'q.lead': '录制时按顺序出现在画面上；说完一题，说「回答完了」进入下一题。', 'q.preset': '预设问题', 'q.presetSub': '每行一个',
+    'q.ai': 'AI 追问', 'q.aiSub': '预设问完后，AI 根据你的回答继续追问', 'q.auto': '沉默自动下一题', 'q.autoSub': '说完后安静这么久，自动进入下一题',
+    'q.speak': '朗读问题', 'q.speakSub': '换题时用系统语音读出来，不用看屏幕',
+    'cover.lead': '分享版会自动带上问题字幕和片头封面卡；原画默认保持干净，方便以后再剪。', 'cover.burn': '把问题烙进视频', 'cover.burnSub': '问题以字幕形式出现在画面下方',
+    'cover.share': '分享版', 'cover.both': '两个都', 'cover.intro': '片头封面卡', 'cover.introSub': '开头几秒显示日期和封面文字，发群时缩略图就是它',
+    'cover.text': '封面文字', 'cover.textSub': '出现在片头和封面图上，日期会自动加上', 'cover.note': '录完还会生成一张封面图（标题 + 日期），和视频一起保存。',
+    'cut.lead': '原画完整保留；分享版在你安静时暂停、开口时继续，出来就是剪好的。同一套判定也用来切分语音识别的句段。',
+    'cut.thr': '说话判定阈值', 'cut.thrSub': '实时音量（需先开相机）：', 'cut.gap': '多久算沉默', 'cut.gapSub': '安静超过这个时长就剪掉', 'cut.cal': '开录前自动校准', 'cut.calSub': '倒数 3 秒时测环境噪音，自动定阈值',
+    'img.lead': '滤镜和美颜会录进视频里；镜像只影响你看到的预览。', 'img.beauty': '美颜', 'img.beautySub': '柔光磨皮强度', 'img.mirror': '镜像预览',
+    'img.orig': '原画码率', 'img.share': '分享版码率', 'img.shareSub': '720×960，方便发群', 'img.theme': '外观', 'theme.auto': '跟随系统', 'theme.light': '亮', 'theme.dark': '暗', 'img.lang': '语言 / Language',
+    'ai.lead': '一个 OpenAI 兼容接口同时负责语音识别、AI 追问和起标题。推荐阿里云百炼：一个 Key 两件事都能做，浏览器可直连。', 'ai.presets': '快速填入', 'ai.p.qwen': '阿里云百炼', 'ai.p.silicon': '硅基流动',
+    'ai.base': '接口地址', 'ai.baseSub': '以 <code>/v1</code> 结尾', 'ai.keySub': '只保存在这台电脑的浏览器里', 'ai.model': '对话模型', 'ai.modelSub': '用于追问和起标题',
+    'ai.asr': '语音识别方式', 'ai.asrSub': '「百炼」用 qwen3-asr-flash；「兼容」走 /audio/transcriptions；「浏览器」在国内多半不可用', 'ai.asr.qwen': '百炼', 'ai.asr.whisper': '兼容', 'ai.asr.browser': '浏览器', 'ai.asrModel': '识别模型',
+    'ai.test': '测试连接', 'ai.testHint': '填好后点右侧测试', 'ai.testNeed': '先填好地址、Key 和对话模型', 'ai.testing': '对话模型连接中…', 'ai.testChat': '✓ 对话：{0}', 'ai.testAsr': ' · 识别测试中…', 'ai.testAsrOk': ' · ✓ 识别接口可用', 'ai.testAsrFail': ' · ✗ 识别：{0}',
+    'ai.filled': '已填入{0}的地址和模型，再贴上 Key', 'ai.note': '百炼控制台开通模型后，在「API-KEY 管理」里拿 Key。识别按音频时长计费，追问按 token 计费，一天几条日志花不了几分钱。',
+    'data.lead': '录完自动写入你选的文件夹（原画、分享版、封面、文字稿）；浏览器里另存一份用于日历回看。', 'data.folder': '保存文件夹', 'data.folderSub': '每次录完自动写入，文件按日期和标题命名', 'data.folderNone': '还没选择', 'data.folderNo': '此浏览器不支持（需要 Chrome / Edge）',
+    'data.choose': '选择', 'data.clear': '清除', 'data.notes': '同时保存文字稿', 'data.notesSub': '问题和识别出的回答，存成 .md',
+    'data.storage': '浏览器内存储', 'data.wipe': '清空全部', 'data.welcome': '首次介绍', 'data.welcomeSub': '重新显示打开页面时的介绍', 'data.again': '再看一次',
+    'data.note': '浏览器里的副本用于日历回看；清理浏览器数据会丢，文件夹里的不会。', 'about.text': '对着镜头回答几个问题，就是今天的日志。<br>cam.baidou.work · 纯浏览器运行 · 不上传',
+    'w.sub': '对着镜头，回答几个问题，<br>说完就是今天的日志。', 'w.f1': '问题出现在画面上', 'w.f1s': '预设几个问题，逐个出现在取景框里，还可以让系统读出来。说「回答完了」进下一题，双手不用碰键盘。',
+    'w.f2': '沉默自动剪掉', 'w.f2s': '原画完整保留，另外出一份剪掉停顿的分享版，体积小，直接发群。',
+    'w.f3': '字幕、封面、自动命名', 'w.f3s': '分享版自动带问题字幕和日期封面；填一个国内模型的 Key，还能 AI 追问、自动起标题。',
+    'w.f4': '直接存到你的文件夹', 'w.f4s': '选一个文件夹，录完自动写进去，不用点下载。视频不经过任何服务器。', 'w.nomore': '不再显示', 'w.go': '开始使用',
+    off: '关', lv1: '轻', lv2: '中', lv3: '重', 'title.default': '{0}月{1}日的日志', 'fn.orig': '原画', 'fn.share': '分享版', 'fn.cover': '封面', 'fn.notes': '文字稿', 'journal': '视频日志',
+    'notes.h': '# {0}\n\n{1}\n\n', 'notes.q': '## {0}\n\n{1}\n\n', 'card.label': 'VIDEO JOURNAL',
+    q1: '今天过得怎么样？用三个词形容一下。', q2: '今天最让你有感触的一件事是什么？', q3: '有什么事，你想明天做得不一样？',
+    'ai.sys': '你是一位温和、好奇、不啰嗦的视频日志访谈者。用户正对着镜头录今天的日志。根据已问过的问题和用户的回答，提出一个自然的追问，帮助用户说得更具体、更真诚。要求：只输出问题本身，不加任何前言、编号或解释；中文；不超过 30 个字；不重复已问过的问题；如果回答为空或没听清，就换一个轻松的新话题。',
+    'ai.user': '今天是 {0}。\n已问与回答：\n{1}\n\n请给出下一个问题。', 'ai.titleSys': '根据一段视频日志的问答，起一个不超过 12 个字的中文标题，具体、有画面感、不用引号，只输出标题。', 'ai.unheard': '（没听清 / 未转写）', 'ai.q': '问：', 'ai.a': '答：', 'ai.ping': '用四个字回复：连接成功'
+  },
+  en: {
+    brand: 'Video Journal', 'nav.rec': 'Record', 'nav.cal': 'Calendar', 'nav.settings': 'Settings', back: '← Baidou tools',
+    'idle.btn': 'Open camera', 'idle.sub': 'Portrait 3:4 · stays on this computer',
+    'pill.idle': 'Idle', 'pill.preview': 'Preview', 'pill.count': 'Countdown', 'pill.rec': 'Recording', 'pill.finish': 'Finishing',
+    'm.dur': 'Duration', 'm.cut': 'Silence cut', 'm.seg': 'Seg / thr', cut: 'cut {0}',
+    'btn.mirror': 'Mirror', 'btn.next': 'Next', 'btn.shutter': 'Start / finish (Space)',
+    'log.empty': 'Once recording, questions and what you say appear here in order.<br>Say “I’m done” to move to the next question.', 'log.none': '(no speech recognized)', pending: ' transcribing…', thinking: ' · thinking of the next one',
+    'q.frame': 'Framing', 'q.frameHint': 'Check the light and framing, pick a filter', 'q.ready': 'Get set', 'q.readyHint': 'Find your angle — recording starts after the countdown',
+    'q.intro': 'Title card', 'q.introHint': 'Recording the cover card — hold on a second', 'q.label': 'Question {0} / {1}', 'q.aiTag': ' · AI follow-up', 'q.aiWait': 'Question {0} · AI',
+    'q.finishing': 'Wrapping up', 'q.finishingHint': 'Finishing — keep this page open',
+    'hint.voiceNext': 'Say “I’m done” for the next question', 'hint.voiceEnd': 'Say “stop recording” to finish', 'hint.tapNext': 'Click the frame / Space for next', 'hint.shutterEnd': 'Shutter to finish',
+    'hint.auto': 'Auto-next after {0}s of silence', 'hint.silent': 'Quiet · next in {0}s', 'hint.wait': 'Waiting for transcription…',
+    'f.none': 'Natural', 'f.warm': 'Warm', 'f.cool': 'Cool', 'f.film': 'Film', 'f.soft': 'Soft', 'f.mono': 'Mono',
+    's.noCam': 'Camera off', 's.opening': 'Opening camera…', 's.preview': 'Previewing · shutter or Space to start (3s countdown)', 's.noFilter': ' · this browser can’t record filters',
+    's.camFail': 'Can’t open camera: {0}', 's.denied': 'permission denied', 's.noMedia': 'This browser has no camera access (needs HTTPS or localhost)', 's.cancel': 'Cancelled',
+    's.recFail': 'Can’t create recorder: {0}', 's.thr': 'threshold {0} dB', 's.amb': ' (room {0} dB)', 's.asr': ' · ASR: ', 's.asrBrowser': 'browser',
+    's.noKey': 'No API key yet — no speech recognition this time', 's.asrFail': 'ASR failed: {0}', 's.speechFail': 'Browser speech recognition unavailable ({0}) · switch to an API in settings',
+    's.aiFail': 'AI follow-up failed: {0}', 's.wrap': 'Packaging video…', 's.wait': 'Waiting for the last transcriptions…', 's.short': 'Too short, not saved', 's.title': 'Naming it…', 's.cover': 'Making the cover…',
+    's.saving': 'Writing to folder…', 's.saved': 'Saved · original {0} / share {1}', 's.savedTo': ' · in “{0}”', 's.saveFail': 'Save failed: {0}', 's.fsFail': 'Writing to folder failed: {0}', 's.fsPerm': 'No write permission for the folder — kept in the browser only; you’ll be asked again next time',
+    's.mirrorOn': 'Mirror: on', 's.mirrorOff': 'Mirror: off', 's.bg': 'Video freezes while this tab is in the background — come back', 's.noRecorder': 'This browser lacks MediaRecorder — try Chrome', 's.insecure': 'Camera needs HTTPS or localhost',
+    'cal.wd': 'M,T,W,T,F,S,S', streak: '{0}-day streak', 'cal.stat': '{0} this month · {1}  |  {2} total', usage: '{0} used / ~{1}',
+    'd.placeholder': 'Click a day with a cover to watch it here.<br>New recordings land here too.', 'd.orig': 'Original', 'd.share': 'Share cut', 'd.cover': 'Cover', 'd.origSub': 'full, uncut', 'd.shareSub': '{0} pauses cut, {1}',
+    'd.saveAs': 'Save as…', 'd.shareBtn': 'Share', 'd.del': 'Delete', 'd.noText': '(no transcript)', 'd.seeShare': 'Share cut', 'd.seeOrig': 'Original',
+    'd.savedTo': 'Saved to', 'd.notSaved': 'No folder chosen yet. Pick one and every recording (original, share cut, cover) is written there automatically.', 'd.choose': 'Choose folder', 'd.fsNo': 'This browser can’t save to a folder automatically — use “Save as”.',
+    'd.delConfirm': 'Delete “{0}”? Removes the browser copies (files in your folder are untouched).', 'd.wipeConfirm': 'Delete all journals stored in the browser? Cannot be undone (folder files are untouched).',
+    'pane.q': 'Questions & flow', 'pane.cover': 'Captions & cover', 'pane.cut': 'Silence cutting', 'pane.img': 'Picture & appearance', 'pane.ai': 'AI API', 'pane.data': 'Saving & data', 'pane.about': 'About',
+    'q.lead': 'Questions appear on screen in order; say “I’m done” to move on.', 'q.preset': 'Preset questions', 'q.presetSub': 'one per line',
+    'q.ai': 'AI follow-ups', 'q.aiSub': 'After the presets, AI asks follow-ups based on your answers', 'q.auto': 'Auto-next on silence', 'q.autoSub': 'Move on after this much quiet',
+    'q.speak': 'Read questions aloud', 'q.speakSub': 'System voice reads each question so you don’t need to look',
+    'cover.lead': 'The share cut gets question captions and an opening title card; the original stays clean for later editing.', 'cover.burn': 'Burn questions into video', 'cover.burnSub': 'Shown as a caption at the bottom of the frame',
+    'cover.share': 'Share cut', 'cover.both': 'Both', 'cover.intro': 'Opening title card', 'cover.introSub': 'Date and cover text for the first seconds — it becomes the thumbnail in chats',
+    'cover.text': 'Cover text', 'cover.textSub': 'Shown on the title card and cover image; the date is added automatically', 'cover.note': 'A cover image (title + date) is also generated and saved alongside the video.',
+    'cut.lead': 'The original is kept whole; the share cut pauses while you’re quiet and resumes when you speak. The same detector splits speech into segments for recognition.',
+    'cut.thr': 'Speech threshold', 'cut.thrSub': 'Live level (camera must be on): ', 'cut.gap': 'Silence length', 'cut.gapSub': 'Quiet longer than this gets cut', 'cut.cal': 'Auto-calibrate before recording', 'cut.calSub': 'Measures room noise during the countdown',
+    'img.lead': 'Filters and skin smoothing are recorded into the video; mirroring only affects your preview.', 'img.beauty': 'Skin smoothing', 'img.beautySub': 'Soft-focus strength', 'img.mirror': 'Mirror preview',
+    'img.orig': 'Original bitrate', 'img.share': 'Share bitrate', 'img.shareSub': '720×960, chat-friendly', 'img.theme': 'Appearance', 'theme.auto': 'System', 'theme.light': 'Light', 'theme.dark': 'Dark', 'img.lang': 'Language / 语言',
+    'ai.lead': 'One OpenAI-compatible API handles speech recognition, follow-ups and titles. Alibaba Model Studio (DashScope) does both with a single key and allows browser calls.', 'ai.presets': 'Quick fill', 'ai.p.qwen': 'Alibaba Model Studio', 'ai.p.silicon': 'SiliconFlow',
+    'ai.base': 'Base URL', 'ai.baseSub': 'ending in <code>/v1</code>', 'ai.keySub': 'Stored only in this browser', 'ai.model': 'Chat model', 'ai.modelSub': 'For follow-ups and titles',
+    'ai.asr': 'Speech recognition', 'ai.asrSub': '“Qwen” uses qwen3-asr-flash; “Compatible” uses /audio/transcriptions; “Browser” needs Google', 'ai.asr.qwen': 'Qwen', 'ai.asr.whisper': 'Compatible', 'ai.asr.browser': 'Browser', 'ai.asrModel': 'ASR model',
+    'ai.test': 'Test', 'ai.testHint': 'Fill in, then test', 'ai.testNeed': 'Fill in base URL, key and chat model first', 'ai.testing': 'Connecting to chat model…', 'ai.testChat': '✓ Chat: {0}', 'ai.testAsr': ' · testing ASR…', 'ai.testAsrOk': ' · ✓ ASR reachable', 'ai.testAsrFail': ' · ✗ ASR: {0}',
+    'ai.filled': 'Filled {0} defaults — now paste your key', 'ai.note': 'ASR is billed per second of audio, follow-ups per token; a few entries a day cost cents.',
+    'data.lead': 'Recordings are written straight into a folder you choose (original, share cut, cover, notes); a browser copy is kept for the calendar.', 'data.folder': 'Save folder', 'data.folderSub': 'Written automatically after each recording, named by date and title', 'data.folderNone': 'not chosen', 'data.folderNo': 'Not supported here (needs Chrome / Edge)',
+    'data.choose': 'Choose', 'data.clear': 'Clear', 'data.notes': 'Also save notes', 'data.notesSub': 'Questions and recognized answers as .md',
+    'data.storage': 'Browser storage', 'data.wipe': 'Delete all', 'data.welcome': 'Intro', 'data.welcomeSub': 'Show the welcome screen again', 'data.again': 'Show again',
+    'data.note': 'The browser copy is for the calendar; clearing site data removes it, folder files stay.', 'about.text': 'Answer a few questions on camera — that’s today’s entry.<br>cam.baidou.work · runs in the browser · nothing uploaded',
+    'w.sub': 'Face the camera, answer a few questions —<br>that’s today’s entry.', 'w.f1': 'Questions on screen', 'w.f1s': 'Preset questions appear in the frame one by one and can be read aloud. Say “I’m done” to move on — hands off the keyboard.',
+    'w.f2': 'Silence cut automatically', 'w.f2s': 'The original is kept whole; a second, tighter share cut drops the pauses and is small enough for chats.',
+    'w.f3': 'Captions, cover, auto-naming', 'w.f3s': 'The share cut carries question captions and a dated title card; with an API key, AI asks follow-ups and names the entry.',
+    'w.f4': 'Saved straight to your folder', 'w.f4s': 'Pick a folder once; every recording is written there — no download button. Nothing goes to a server.', 'w.nomore': 'Don’t show again', 'w.go': 'Get started',
+    off: 'Off', lv1: 'Light', lv2: 'Medium', lv3: 'Strong', 'title.default': 'Journal, {2} {1}', 'fn.orig': 'original', 'fn.share': 'share', 'fn.cover': 'cover', 'fn.notes': 'notes', 'journal': 'Video Journal',
+    'notes.h': '# {0}\n\n{1}\n\n', 'notes.q': '## {0}\n\n{1}\n\n', 'card.label': 'VIDEO JOURNAL',
+    q1: 'How was your day? Three words.', q2: 'What moved you most today?', q3: 'What would you do differently tomorrow?',
+    'ai.sys': 'You are a warm, curious, concise video-journal interviewer. The user is recording today’s entry on camera. Based on the questions asked and the answers so far, ask one natural follow-up that helps them be more specific and honest. Output only the question — no preamble, numbering or explanation; English; under 20 words; never repeat a question; if the answer is empty or unclear, switch to a light new topic.',
+    'ai.user': 'Today is {0}.\nAsked and answered:\n{1}\n\nGive the next question.', 'ai.titleSys': 'Given a video-journal Q&A, write a concrete, vivid title of at most 6 words. No quotes. Output only the title.', 'ai.unheard': '(unclear / not transcribed)', 'ai.q': 'Q: ', 'ai.a': 'A: ', 'ai.ping': 'Reply with exactly: connected'
+  }
+};
+let LANG = 'zh';
+const t = (k, ...a) => { let s = (I18N[LANG] && I18N[LANG][k] != null) ? I18N[LANG][k] : (I18N.zh[k] != null ? I18N.zh[k] : k); a.forEach((v, i) => { s = s.split('{' + i + '}').join(v); }); return s; };
+function applyI18n() {
+  document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : 'en';
+  $$('[data-i18n]').forEach(e => { e.textContent = t(e.dataset.i18n); });
+  $$('[data-i18n-html]').forEach(e => { e.innerHTML = t(e.dataset.i18nHtml); });
+  $$('[data-i18n-title]').forEach(e => { e.title = t(e.dataset.i18nTitle); });
+  $('#wd').innerHTML = t('cal.wd').split(',').map(w => '<span>' + w + '</span>').join('');
+  $('#btnLang').textContent = LANG === 'zh' ? 'EN' : '中文';
+  $('#aiTestMsg').textContent = t('ai.testHint');
+  $$('[data-lang]').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
+  el.qMeta.dataset.thinking = t('thinking');
+  const today = new Date();
+  $('#todayLabel').textContent = fmtDateLine(today);
+}
+const fmtDateLine = d => LANG === 'zh' ? isoDate(d).replace(/-/g, '.') + ' 周' + CN_WD[d.getDay()] : isoDate(d).replace(/-/g, '.') + ' ' + EN_WD[d.getDay()].slice(0, 3);
+
+/* ---------- 设置 ---------- */
+const DEFAULTS = {
+  lang: '', theme: 'auto',
+  questions: { zh: ['q1', 'q2', 'q3'].map(k => I18N.zh[k]), en: ['q1', 'q2', 'q3'].map(k => I18N.en[k]) },
+  aiFollowUps: 2, autoAdvanceSec: 0, speak: true, mirror: true,
+  burnTarget: 'share', introSec: 2, coverText: '', saveNotes: true,
+  filter: 'warm', beauty: 1, thresholdDb: -42, gapMs: 1200, autoCal: true, origMbps: 8, shareMbps: 1.5,
+  ai: { baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: '', model: 'qwen-plus', asrMode: 'qwen', asrModel: 'qwen3-asr-flash' }
+};
+const PRESETS = {
+  qwen: { baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus', asrMode: 'qwen', asrModel: 'qwen3-asr-flash', label: 'ai.p.qwen' },
+  silicon: { baseUrl: 'https://api.siliconflow.cn/v1', model: 'deepseek-ai/DeepSeek-V3', asrMode: 'whisper', asrModel: 'FunAudioLLM/SenseVoiceSmall', label: 'ai.p.silicon' },
+  deepseek: { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat', asrMode: 'browser', asrModel: '', label: 'DeepSeek' },
+  openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini', asrMode: 'whisper', asrModel: 'whisper-1', label: 'OpenAI' }
+};
+let S = loadSettings();
+function loadSettings() {
+  try {
+    const j = JSON.parse(localStorage.getItem('vlog.settings') || '{}');
+    const s = Object.assign({}, DEFAULTS, j);
+    s.ai = Object.assign({}, DEFAULTS.ai, j.ai || {});
+    if (Array.isArray(j.questions)) s.questions = { zh: j.questions, en: DEFAULTS.questions.en.slice() };
+    else s.questions = Object.assign({}, DEFAULTS.questions, j.questions || {});
+    delete s.burn; delete s.ai.sttModel;
+    return s;
+  } catch (e) { return JSON.parse(JSON.stringify(DEFAULTS)); }
+}
+function saveSettings() { localStorage.setItem('vlog.settings', JSON.stringify(S)); }
+LANG = S.lang || ((navigator.language || 'zh').toLowerCase().startsWith('zh') ? 'zh' : 'en');
+const Q = () => (S.questions[LANG] && S.questions[LANG].length ? S.questions[LANG] : DEFAULTS.questions[LANG]);
+
+const mq = window.matchMedia('(prefers-color-scheme: dark)');
+function applyTheme() {
+  const dark = S.theme === 'dark' || (S.theme === 'auto' && mq.matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  $('#themeColor').setAttribute('content', dark ? '#111614' : '#f3f6f4');
+  $('#btnTheme').textContent = dark ? '☾' : '☀';
+}
+mq.addEventListener('change', () => { if (S.theme === 'auto') applyTheme(); });
+
+const FILTERS = {
+  none: { css: '' },
+  warm: { css: 'sepia(0.22) saturate(1.18) contrast(1.05) brightness(1.03)' },
+  cool: { css: 'saturate(0.92) hue-rotate(-8deg) contrast(1.07) brightness(1.02)' },
+  film: { css: 'contrast(1.12) saturate(0.82) sepia(0.18) brightness(0.98)', vignette: 0.55 },
+  soft: { css: 'brightness(1.07) contrast(0.94) saturate(1.06)' },
+  mono: { css: 'grayscale(1) contrast(1.18) brightness(1.02)', vignette: 0.4 }
+};
+
+/* ---------- 存储 ---------- */
+const DB = {
+  _p: null,
+  open() {
+    if (this._p) return this._p;
+    this._p = new Promise((res, rej) => {
+      const r = indexedDB.open('baidou-vlog', 2);
+      r.onupgradeneeded = () => {
+        const db = r.result;
+        if (!db.objectStoreNames.contains('entries')) db.createObjectStore('entries', { keyPath: 'id' }).createIndex('date', 'date', { unique: false });
+        if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+      };
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    return this._p;
+  },
+  async tx(store, mode, fn) {
+    const db = await this.open();
+    return new Promise((res, rej) => {
+      const tr = db.transaction(store, mode);
+      const req = fn(tr.objectStore(store));
+      tr.oncomplete = () => res(req && req.result);
+      tr.onerror = () => rej(tr.error);
+      tr.onabort = () => rej(tr.error || new Error('aborted'));
+    });
+  },
+  put(e) { return this.tx('entries', 'readwrite', st => st.put(e)); },
+  del(id) { return this.tx('entries', 'readwrite', st => st.delete(id)); },
+  clear() { return this.tx('entries', 'readwrite', st => st.clear()); },
+  all() { return this.tx('entries', 'readonly', st => st.getAll()); },
+  kvGet(k) { return this.tx('kv', 'readonly', st => st.get(k)); },
+  kvSet(k, v) { return this.tx('kv', 'readwrite', st => st.put(v, k)); },
+  kvDel(k) { return this.tx('kv', 'readwrite', st => st.delete(k)); }
+};
+
+/* ---------- 本地文件夹（File System Access） ---------- */
+const FS = {
+  ok: typeof window.showDirectoryPicker === 'function',
+  handle: null,
+  async load() { if (!this.ok) return; try { this.handle = (await DB.kvGet('dir')) || null; } catch (_) { this.handle = null; } },
+  async choose() {
+    if (!this.ok) return false;
+    try {
+      const h = await window.showDirectoryPicker({ mode: 'readwrite', id: 'vlog-folder', startIn: 'videos' });
+      this.handle = h; await DB.kvSet('dir', h); return true;
+    } catch (_) { return false; }
+  },
+  async clear() { this.handle = null; await DB.kvDel('dir').catch(() => {}); },
+  async permitted(request) {
+    if (!this.handle) return false;
+    try {
+      let p = await this.handle.queryPermission({ mode: 'readwrite' });
+      if (p !== 'granted' && request) p = await this.handle.requestPermission({ mode: 'readwrite' });
+      return p === 'granted';
+    } catch (_) { return false; }
+  },
+  async write(name, blob) {
+    const f = await this.handle.getFileHandle(name, { create: true });
+    const w = await f.createWritable(); await w.write(blob); await w.close();
+  },
+  name() { return this.handle ? this.handle.name : ''; }
+};
+
+/* ---------- 相机与画面 ---------- */
+const cv = $('#cv');
+const ctx = cv.getContext('2d', { alpha: false });
+const shareCv = document.createElement('canvas'); shareCv.width = 720; shareCv.height = 960;
+const sctx = shareCv.getContext('2d', { alpha: false });
+const snapCv = document.createElement('canvas'); snapCv.width = 1080; snapCv.height = 1440;
+const FILTER_OK = 'filter' in ctx;
+ctx.imageSmoothingQuality = 'high';
+const cam = { stream: null, video: null, running: false, raf: 0 };
+
+async function startCamera() {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'user', width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
+    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+  });
+  const v = document.createElement('video');
+  v.muted = true; v.playsInline = true; v.setAttribute('playsinline', '');
+  v.srcObject = stream;
+  await v.play();
+  cam.stream = stream; cam.video = v; cam.running = true;
+  audio.init(stream);
+  loop();
+}
+function stopCamera() {
+  cam.running = false;
+  cancelAnimationFrame(cam.raf);
+  if (cam.stream) cam.stream.getTracks().forEach(t => t.stop());
+  cam.stream = null; cam.video = null;
+  audio.close();
+  ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, cv.width, cv.height);
+}
+/* 摄像头 → 3:4 裁切 + 滤镜 + 美颜 + 暗角（不含任何字幕） */
+function drawBase(c, W, H, mirror) {
+  const v = cam.video;
+  if (!v || v.readyState < 2 || !v.videoWidth) return false;
+  const vw = v.videoWidth, vh = v.videoHeight, ar = W / H;
+  let sw, sh, sx, sy;
+  if (vw / vh > ar) { sh = vh; sw = vh * ar; sx = (vw - sw) / 2; sy = 0; } else { sw = vw; sh = vw / ar; sx = 0; sy = (vh - sh) / 2; }
+  const f = FILTERS[S.filter] || FILTERS.none;
+  c.save();
+  if (mirror) { c.translate(W, 0); c.scale(-1, 1); }
+  if (FILTER_OK) c.filter = f.css || 'none';
+  c.drawImage(v, sx, sy, sw, sh, 0, 0, W, H);
+  if (S.beauty > 0 && FILTER_OK) {
+    c.globalAlpha = 0.13 * S.beauty;
+    c.filter = (f.css || '') + ' blur(' + (3 + 3 * S.beauty) * (W / 1080) + 'px) brightness(1.06)';
+    c.drawImage(v, sx, sy, sw, sh, 0, 0, W, H);
+    c.globalAlpha = 1;
+  }
+  c.restore();
+  if (FILTER_OK) c.filter = 'none';
+  if (f.vignette) {
+    const g = c.createRadialGradient(W / 2, H / 2, H * 0.32, W / 2, H / 2, H * 0.82);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,' + f.vignette + ')');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+  }
+  return true;
+}
+function draw() {
+  if (!drawBase(ctx, cv.width, cv.height, S.mirror)) return;
+  const rec = session.phase === 'recording';
+  const both = S.burnTarget === 'both';
+  if (rec && both) drawOverlays(ctx, cv.width, cv.height);
+  sctx.drawImage(cv, 0, 0, shareCv.width, shareCv.height);
+  if (rec && !both) drawOverlays(sctx, shareCv.width, shareCv.height);
+}
+/* 片头封面卡 / 问题字幕，画到目标画布上 */
+function drawOverlays(c, W, H) {
+  const now = performance.now() - session.t0;
+  if (session.introMs && now < session.introMs) {
+    const fade = clamp((session.introMs - now) / 500, 0, 1);
+    drawCard(c, W, H, { top: cardDateLine(session.startDate), big: cardBigDate(session.startDate), sub: coverText() }, fade);
+    return;
+  }
+  if (S.burnTarget !== 'off' && session.q && !session.thinking) drawCaption(c, W, H, session.q, session.answers.length + 1);
+}
+function coverText() { return (S.coverText || '').trim() || t('journal'); }
+function cardDateLine(d) { return LANG === 'zh' ? cnYear(d.getFullYear()) + '年 · 星期' + CN_WD[d.getDay()] : EN_WD[d.getDay()].toUpperCase() + ' · ' + d.getFullYear(); }
+function cardBigDate(d) { return LANG === 'zh' ? CN_MONTH[d.getMonth()] + '月' + cnDay(d.getDate()) + '日' : EN_MONTH[d.getMonth()].slice(0, 3) + ' ' + d.getDate(); }
+function wrapLines(c, text, maxW) {
+  const tokens = text.split(/(?<=\s)|(?=[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef])|(?<=[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef])/).filter(Boolean);
+  const lines = []; let line = '';
+  for (const tk of tokens) {
+    const test = line + tk;
+    if (c.measureText(test.trimEnd()).width > maxW && line.trim()) { lines.push(line.trimEnd()); line = tk.trimStart(); } else line = test;
+  }
+  if (line.trim()) lines.push(line.trimEnd());
+  return lines;
+}
+function drawCard(c, W, H, tx, alpha) {
+  const s = W / 1080;
+  c.save();
+  c.globalAlpha = alpha;
+  c.fillStyle = 'rgba(8,6,4,0.62)'; c.fillRect(0, 0, W, H);
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  c.fillStyle = 'rgba(236,228,214,0.72)';
+  c.font = '500 ' + 30 * s + 'px "IBM Plex Mono", Menlo, monospace';
+  c.fillText(t('card.label'), W / 2, H * 0.36);
+  c.fillStyle = 'rgba(236,228,214,0.72)';
+  c.font = '500 ' + 34 * s + 'px "Noto Serif SC","Songti SC",serif';
+  c.fillText(tx.top, W / 2, H * 0.36 + 62 * s);
+  c.fillStyle = '#ece4d6';
+  const big = tx.big; let size = big.length > 8 ? 110 : 150;
+  c.font = '700 ' + size * s + 'px "Noto Serif SC","Songti SC",serif';
+  const bigLines = wrapLines(c, big, W - 160 * s);
+  let y = H * 0.36 + 62 * s + 60 * s + size * s;
+  bigLines.forEach((l, i) => c.fillText(l, W / 2, y + i * size * 1.12 * s));
+  y += (bigLines.length - 1) * size * 1.12 * s;
+  c.fillStyle = '#a9dcc3'; c.fillRect(W / 2 - 30 * s, y + 46 * s, 60 * s, 3 * s);
+  c.font = '500 ' + 48 * s + 'px "Noto Serif SC","Songti SC",serif';
+  c.fillStyle = 'rgba(236,228,214,0.92)';
+  wrapLines(c, tx.sub, W - 200 * s).forEach((l, i) => c.fillText(l, W / 2, y + 128 * s + i * 66 * s));
+  c.restore();
+}
+function drawCaption(c, W, H, q, n) {
+  const s = W / 1080;
+  c.save();
+  c.font = '500 ' + 50 * s + 'px "Noto Serif SC","Songti SC",serif'; c.textBaseline = 'top'; c.textAlign = 'left';
+  const lines = wrapLines(c, q, W - 200 * s);
+  const lh = 70 * s, blockH = lines.length * lh, y0 = H - 110 * s - blockH;
+  const g = c.createLinearGradient(0, y0 - 260 * s, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.72)');
+  c.fillStyle = g; c.fillRect(0, y0 - 260 * s, W, H - (y0 - 260 * s));
+  c.fillStyle = '#a9dcc3';
+  c.font = '500 ' + 22 * s + 'px "IBM Plex Mono", Menlo, monospace';
+  c.fillText((LANG === 'zh' ? '问题 ' : 'QUESTION ') + pad(n) + '   ·   ' + isoDate(session.startDate).replace(/-/g, '.'), 100 * s, y0 - 44 * s);
+  c.fillRect(84 * s, y0 + 4 * s, 4 * s, blockH - 12 * s);
+  c.fillStyle = 'rgba(236,228,214,0.96)';
+  c.font = '500 ' + 50 * s + 'px "Noto Serif SC","Songti SC",serif';
+  lines.forEach((l, i) => c.fillText(l, 110 * s, y0 + i * lh));
+  c.restore();
+}
+function loop() {
+  if (!cam.running) return;
+  draw();
+  const db = audio.level();
+  ui.vu(db);
+  if (session.phase === 'recording') session.tick(db);
+  cam.raf = requestAnimationFrame(loop);
+}
+
+/* ---------- 音频：音量 + PCM 抓取 ---------- */
+const audio = {
+  ctx: null, an: null, buf: null, proc: null, db: -100, sr: 48000,
+  init(stream) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    this.ctx = new AC(); this.sr = this.ctx.sampleRate;
+    const src = this.ctx.createMediaStreamSource(stream);
+    this.an = this.ctx.createAnalyser(); this.an.fftSize = 1024; this.an.smoothingTimeConstant = 0;
+    src.connect(this.an);
+    this.buf = new Float32Array(this.an.fftSize);
+    this.proc = this.ctx.createScriptProcessor(4096, 1, 1);
+    const mute = this.ctx.createGain(); mute.gain.value = 0;
+    src.connect(this.proc); this.proc.connect(mute); mute.connect(this.ctx.destination);
+    this.proc.onaudioprocess = e => segmenter.push(e.inputBuffer.getChannelData(0));
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  level() {
+    if (!this.an) return -100;
+    this.an.getFloatTimeDomainData(this.buf);
+    let s = 0; for (let i = 0; i < this.buf.length; i++) s += this.buf[i] * this.buf[i];
+    const rms = Math.sqrt(s / this.buf.length);
+    this.db = rms > 0 ? 20 * Math.log10(rms) : -100;
+    return this.db;
+  },
+  close() { if (this.proc) { this.proc.onaudioprocess = null; this.proc = null; } if (this.ctx) { try { this.ctx.close(); } catch (_) {} this.ctx = null; this.an = null; } }
+};
+const segmenter = {
+  pre: [], preLen: 0, cur: null, curLen: 0, active: false, enabled: false,
+  push(data) {
+    if (!this.enabled) return;
+    const c = new Float32Array(data);
+    if (this.active) { this.cur.push(c); this.curLen += c.length; if (this.curLen > audio.sr * 40) this.end(); }
+    else { this.pre.push(c); this.preLen += c.length; while (this.preLen > audio.sr * 0.4 && this.pre.length > 1) this.preLen -= this.pre.shift().length; }
+  },
+  start() { if (this.active || !this.enabled) return; this.active = true; this.cur = this.pre.slice(); this.curLen = this.preLen; this.pre = []; this.preLen = 0; },
+  end() {
+    if (!this.active) return;
+    this.active = false;
+    const chunks = this.cur, len = this.curLen; this.cur = null; this.curLen = 0;
+    if (len < audio.sr * 0.45) return;
+    asr.enqueue(encodeWav16k(chunks, len, audio.sr));
+  },
+  reset() { this.pre = []; this.preLen = 0; this.cur = null; this.curLen = 0; this.active = false; }
+};
+function encodeWav16k(chunks, len, sr) {
+  const merged = new Float32Array(len); let o = 0;
+  for (const c of chunks) { merged.set(c, o); o += c.length; }
+  const ratio = sr / 16000, outLen = Math.floor(len / ratio), pcm = new Int16Array(outLen);
+  for (let i = 0; i < outLen; i++) {
+    const a = Math.floor(i * ratio), b = Math.min(len, Math.floor((i + 1) * ratio));
+    let s = 0; for (let j = a; j < b; j++) s += merged[j];
+    const v = clamp(s / Math.max(1, b - a), -1, 1);
+    pcm[i] = v < 0 ? v * 32768 : v * 32767;
+  }
+  const buf = new ArrayBuffer(44 + pcm.length * 2), dv = new DataView(buf);
+  const str = (off, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(off + i, s.charCodeAt(i)); };
+  str(0, 'RIFF'); dv.setUint32(4, 36 + pcm.length * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
+  dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, 16000, true);
+  dv.setUint32(28, 32000, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); str(36, 'data'); dv.setUint32(40, pcm.length * 2, true);
+  new Int16Array(buf, 44).set(pcm);
+  return new Blob([buf], { type: 'audio/wav' });
+}
+const asr = {
+  q: Promise.resolve(), pending: 0,
+  enqueue(wav) {
+    this.pending++; ui.pending(this.pending);
+    this.q = this.q.then(async () => {
+      try { const r = await AI.recognize(wav); if (r) session.onSpeech(r); }
+      catch (e) { ui.status(t('s.asrFail', e.message), true); }
+      finally { this.pending--; ui.pending(this.pending); }
+    });
+    return this.q;
+  },
+  drain() { return this.q; }
+};
+
+/* ---------- 录制器 ---------- */
+function pickMime() {
+  return ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4;codecs=avc1,opus', 'video/mp4',
+    'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(m => MediaRecorder.isTypeSupported(m)) || '';
+}
+function makeRecorder(canvas, mbps, mime) {
+  const cs = canvas.captureStream(30);
+  const at = cam.stream.getAudioTracks()[0];
+  const ms = new MediaStream([cs.getVideoTracks()[0], at.clone()]);
+  const opts = { videoBitsPerSecond: Math.round(mbps * 1e6), audioBitsPerSecond: 128000 };
+  if (mime) opts.mimeType = mime;
+  const r = new MediaRecorder(ms, opts);
+  const chunks = [];
+  r.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  return {
+    r,
+    stop() {
+      return new Promise(res => {
+        const done = () => { ms.getTracks().forEach(t => t.stop()); res(new Blob(chunks, { type: r.mimeType || mime })); };
+        if (r.state === 'inactive') return done();
+        r.onstop = done;
+        try { r.stop(); } catch (_) { done(); }
+      });
+    }
+  };
+}
+
+/* ---------- 语音触发词 / 浏览器识别（备用） / 朗读 ---------- */
+const TRIG = {
+  zh: { next: /(这个问题|这题|这一题|好[了的]?)?[,，]?(回答完了|回答完毕|下一个问题|下一题)[。！!,，]?/g, end: /(好[了的]?[,，]?)?(结束录制|录制结束|今天就到这[里儿]?|今天就这样|结束吧)[。！!,，]?/g },
+  en: { next: /\b(ok[,.]?\s*)?(i['’]?m done|i am done|done answering|next question|next one please|next one)\b[.!,]?/gi, end: /\b(ok[,.]?\s*)?(stop recording|stop the recording|end recording|end the recording|that['’]?s all for today|wrap it up)\b[.!,]?/gi }
+};
+const Speech = {
+  ok: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
+  rec: null, failed: false,
+  start() {
+    if (!this.ok || this.failed || this.rec) return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const r = new SR(); r.lang = LANG === 'zh' ? 'zh-CN' : 'en-US'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
+    r.onresult = e => {
+      if (tts.speaking) return;
+      let finals = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) finals += e.results[i][0].transcript;
+      if (finals) session.onSpeech(finals);
+    };
+    r.onerror = e => {
+      if (['network', 'not-allowed', 'service-not-allowed', 'audio-capture'].includes(e.error)) {
+        this.failed = true; session.asrOn = false; ui.status(t('s.speechFail', e.error), true); ui.hint();
+      }
+    };
+    r.onend = () => { if (this.rec === r && session.phase === 'recording' && !this.failed) setTimeout(() => { if (this.rec === r) { try { r.start(); } catch (_) {} } }, 300); };
+    try { r.start(); this.rec = r; } catch (_) { this.failed = true; }
+  },
+  stop() { const r = this.rec; this.rec = null; if (r) { r.onend = null; r.onresult = null; try { r.stop(); } catch (_) {} } }
+};
+const tts = {
+  speaking: false, _t: 0,
+  speak(text) {
+    if (!('speechSynthesis' in window) || !text) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.lang = LANG === 'zh' ? 'zh-CN' : 'en-US'; u.rate = 1.02;
+    const voices = speechSynthesis.getVoices();
+    const pref = LANG === 'zh' ? /^zh/i : /^en/i;
+    const v = voices.find(x => pref.test(x.lang) && /Tingting|Xiaoxiao|Meijia|Sinji|Samantha|Ava|Allison|Google|Yunxi/i.test(x.name)) || voices.find(x => pref.test(x.lang));
+    if (v) u.voice = v;
+    const done = () => { this.speaking = false; clearTimeout(this._t); session.lastVoice = performance.now(); };
+    u.onend = done; u.onerror = done;
+    this.speaking = true; clearTimeout(this._t); this._t = setTimeout(done, 1500 + text.length * (LANG === 'zh' ? 380 : 90));
+    speechSynthesis.speak(u);
+  },
+  cancel() { if ('speechSynthesis' in window) speechSynthesis.cancel(); this.speaking = false; clearTimeout(this._t); }
+};
+if ('speechSynthesis' in window) speechSynthesis.getVoices();
+
+/* ---------- AI ---------- */
+const AI = {
+  ready() { return !!(S.ai.apiKey && S.ai.baseUrl && S.ai.model); },
+  asrApi() { return !!(S.ai.apiKey && S.ai.baseUrl && S.ai.asrModel && (S.ai.asrMode === 'qwen' || S.ai.asrMode === 'whisper')); },
+  base() { return S.ai.baseUrl.replace(/\/+$/, ''); },
+  async post(path, body, isForm, timeout) {
+    const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), timeout || 25000);
+    const h = { Authorization: 'Bearer ' + S.ai.apiKey }; if (!isForm) h['Content-Type'] = 'application/json';
+    try {
+      const res = await fetch(this.base() + path, { method: 'POST', headers: h, body: isForm ? body : JSON.stringify(body), signal: ctl.signal });
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + (await res.text()).replace(/\s+/g, ' ').slice(0, 140));
+      return res.json();
+    } catch (e) { if (e.name === 'AbortError') throw new Error('timeout'); if (e.name === 'TypeError') throw new Error('network / CORS'); throw e; }
+    finally { clearTimeout(to); }
+  },
+  async chat(messages, opts = {}) {
+    const j = await this.post('/chat/completions', { model: S.ai.model, messages, temperature: opts.temperature ?? 0.8, max_tokens: opts.max_tokens || 120 });
+    return (j.choices?.[0]?.message?.content || '').trim();
+  },
+  async recognize(wav) {
+    const lang = LANG === 'zh' ? 'zh' : 'en';
+    if (S.ai.asrMode === 'qwen') {
+      const b64 = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result.split(',')[1]); fr.readAsDataURL(wav); });
+      const j = await this.post('/chat/completions', {
+        model: S.ai.asrModel,
+        messages: [{ role: 'user', content: [{ type: 'input_audio', input_audio: { data: 'data:audio/wav;base64,' + b64 } }] }],
+        asr_options: { language: lang, enable_itn: true }
+      }, false, 30000);
+      return (j.choices?.[0]?.message?.content || '').trim();
+    }
+    const fd = new FormData(); fd.append('file', wav, 'seg.wav'); fd.append('model', S.ai.asrModel); fd.append('language', lang);
+    const j = await this.post('/audio/transcriptions', fd, true, 30000);
+    return (j.text || '').trim();
+  },
+  history(answers) { return answers.map((a, i) => (i + 1) + '. ' + t('ai.q') + a.q + '\n   ' + t('ai.a') + (a.a ? a.a : t('ai.unheard'))).join('\n'); },
+  async nextQuestion(answers) {
+    const q = await this.chat([{ role: 'system', content: t('ai.sys') }, { role: 'user', content: t('ai.user', isoDate(), this.history(answers)) }], { max_tokens: 80 });
+    return q.replace(/^["“「\s]+|["”」\s]+$/g, '').split('\n')[0].slice(0, 80);
+  },
+  async title(answers) {
+    const r = await this.chat([{ role: 'system', content: t('ai.titleSys') }, { role: 'user', content: this.history(answers) }], { max_tokens: 40, temperature: 0.7 });
+    return r.replace(/^["“「\s]+|["”」\s。.]+$/g, '').split('\n')[0].slice(0, 40);
+  }
+};
+
+/* ---------- 界面 ---------- */
+const el = {
+  frame: $('#frame'), tc: $('#tc'), cutInfo: $('#cutInfo'), vu: $('#vu'), vuThr: $('#vuThr'),
+  qMeta: $('#qMeta'), qText: $('#qText'), qHint: $('#qHint'), count: $('#count'), idle: $('#idle'),
+  status: $('#status'), btnNext: $('#btnNext'), btnShutter: $('#btnShutter'), filters: $('#filters'),
+  dbLive: $('#dbLive'), log: $('#log'), pill: $('#pill'), mTc: $('#mTc'), mCut: $('#mCut'), mSeg: $('#mSeg'), viewRec: $('#view-rec')
+};
+const ui = {
+  status(msg, err) { el.status.textContent = msg || ''; el.status.classList.toggle('err', !!err); },
+  vu(db) {
+    el.vu.style.width = (clamp((db + 70) / 60, 0, 1) * 100).toFixed(1) + '%';
+    const thr = session.thr != null ? session.thr : S.thresholdDb;
+    el.vuThr.style.left = (clamp((thr + 70) / 60, 0, 1) * 100).toFixed(1) + '%';
+    if (settingsOpen) el.dbLive.textContent = db <= -99 ? '—' : db.toFixed(0) + ' dB';
+  },
+  question(meta, text) {
+    el.qMeta.textContent = meta; el.qText.textContent = text;
+    el.qText.classList.remove('rise'); void el.qText.offsetWidth; el.qText.classList.add('rise');
+  },
+  hint(x) {
+    if (x != null) { el.qHint.textContent = x; return; }
+    if (session.phase !== 'recording') { el.qHint.textContent = ''; return; }
+    const parts = session.asrOn ? [t('hint.voiceNext'), t('hint.voiceEnd')] : [t('hint.tapNext'), t('hint.shutterEnd')];
+    if (S.autoAdvanceSec > 0) parts.push(t('hint.auto', S.autoAdvanceSec));
+    el.qHint.textContent = parts.join(' · ');
+  },
+  pill(k) { el.pill.textContent = t(k); },
+  idleMode(on) { el.idle.classList.toggle('off', !on); },
+  recording(on) { el.viewRec.classList.toggle('recording', on); el.btnNext.disabled = !on; },
+  thinking(on) { el.frame.classList.toggle('thinking', on); },
+  pending(n) { const cur = $('.log li.cur', el.log); if (cur) cur.classList.toggle('pending', n > 0); },
+  log() {
+    if (session.phase !== 'recording' && session.phase !== 'finishing' && !session.answers.length) { el.log.innerHTML = '<li class="empty">' + t('log.empty') + '</li>'; return; }
+    let html = session.answers.map((a, i) => '<li><b><i>' + pad(i + 1) + '</i>' + esc(a.q) + '</b><p>' + esc(a.a || t('log.none')) + '</p></li>').join('');
+    if (session.phase === 'recording' && session.q) html += '<li class="cur' + (asr.pending ? ' pending' : '') + '"><b><i>' + pad(session.answers.length + 1) + '</i>' + esc(session.q) + '</b><p data-pending="' + esc(t('pending')) + '">' + esc(session.transcript.trim()) + '</p></li>';
+    el.log.innerHTML = html;
+    el.log.scrollTop = el.log.scrollHeight;
+  },
+  meters(tcMs, cutMs) {
+    el.tc.textContent = el.mTc.textContent = fmtTime(tcMs);
+    el.cutInfo.textContent = t('cut', fmtTime(cutMs)); el.mCut.textContent = fmtTime(cutMs);
+    el.mSeg.textContent = session.cuts + ' / ' + (session.thr != null ? session.thr + 'dB' : '—');
+  }
+};
+function renderFilters() {
+  el.filters.innerHTML = Object.keys(FILTERS).map(k => '<button class="chip' + (k === S.filter ? ' on' : '') + '" data-f="' + k + '">' + t('f.' + k) + '</button>').join('');
+}
+el.filters.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; S.filter = b.dataset.f; saveSettings(); renderFilters(); });
+
+/* ---------- 一次录制 ---------- */
+const session = {
+  phase: 'idle', qs: [], qi: 0, q: '', answers: [], aiCount: 0, thr: null, asrOn: false, introMs: 0, startDate: new Date(),
+  orig: null, share: null, mime: '',
+  t0: 0, qStart: 0, lastTick: 0, lastVoice: 0, spokenMs: 0, activeMs: 0, cutMs: 0, cuts: 0, paused: false,
+  transcript: '', poster: null, thinking: false, answerClosed: true,
+
+  async begin() {
+    if (this.phase !== 'idle') return;
+    if (FS.ok && FS.handle) await FS.permitted(true);
+    if (!cam.running) { await openCamera(); if (!cam.running) return; }
+    this.phase = 'countdown';
+    el.frame.classList.add('counting');
+    ui.question(t('q.ready'), t('q.readyHint')); ui.pill('pill.count');
+    const samples = []; let n = 3;
+    const show = () => { el.count.innerHTML = '<span>' + n + '</span>'; };
+    show();
+    await new Promise(res => {
+      const tm = setInterval(() => {
+        if (this.phase !== 'countdown') { clearInterval(tm); return res(); }
+        samples.push(audio.db);
+        if (samples.length % 10 === 0) { n--; if (n <= 0) { clearInterval(tm); return res(); } show(); }
+      }, 100);
+    });
+    el.frame.classList.remove('counting');
+    if (this.phase !== 'countdown') { ui.status(t('s.cancel')); this.phase = 'idle'; ui.pill('pill.preview'); ui.question(t('q.frame'), t('q.frameHint')); return; }
+    const amb = samples.filter(x => x > -99).sort((a, b) => a - b);
+    const med = amb.length ? amb[Math.floor(amb.length / 2)] : -60;
+    this.thr = S.autoCal ? clamp(Math.round(med + 12), -58, -22) : S.thresholdDb;
+    this.startRecording(med);
+  },
+  startRecording(amb) {
+    this.mime = pickMime();
+    try {
+      this.orig = makeRecorder(cv, S.origMbps, this.mime);
+      this.share = makeRecorder(shareCv, S.shareMbps, this.mime);
+    } catch (e) { ui.status(t('s.recFail', e.message), true); this.phase = 'idle'; return; }
+    this.qs = Q().slice(); this.qi = 0; this.answers = []; this.aiCount = 0; this.q = ''; this.transcript = '';
+    this.activeMs = 0; this.cutMs = 0; this.cuts = 0; this.spokenMs = 0; this.paused = false; this.poster = null; this.thinking = false;
+    this.startDate = new Date();
+    this.introMs = S.burnTarget === 'off' ? 0 : S.introSec * 1000;
+    this.orig.r.start(1000); this.share.r.start(1000);
+    this.t0 = performance.now(); this.lastTick = this.t0; this.lastVoice = this.t0;
+    this.phase = 'recording';
+    ui.recording(true); ui.pill('pill.rec');
+    const mode = S.ai.asrMode;
+    segmenter.reset();
+    if (mode === 'qwen' || mode === 'whisper') {
+      if (AI.asrApi()) { segmenter.enabled = true; this.asrOn = true; } else { this.asrOn = false; ui.status(t('s.noKey'), true); }
+    } else if (mode === 'browser') { Speech.start(); this.asrOn = Speech.ok && !Speech.failed; }
+    else this.asrOn = false;
+    ui.status(t('s.thr', this.thr) + (S.autoCal ? t('s.amb', Math.round(amb)) : '') + ' · ' + (this.mime.split(';')[0] || 'webm') + (this.asrOn ? t('s.asr') + (mode === 'browser' ? t('s.asrBrowser') : S.ai.asrModel) : ''));
+    setTimeout(() => { if (this.phase === 'recording') this.capturePoster(); }, this.introMs + 1400);
+    if (this.introMs) {
+      ui.question(t('q.intro'), coverText()); ui.hint(t('q.introHint')); ui.log();
+      setTimeout(() => { if (this.phase === 'recording') this.ask(this.qs[0]); }, this.introMs);
+    } else this.ask(this.qs[0]);
+  },
+  capturePoster() { drawBase(snapCv.getContext('2d'), 1080, 1440, false); this.poster = true; },
+  ask(q) {
+    this.q = q; this.transcript = ''; this.spokenMs = 0; this.answerClosed = false;
+    this.qStart = performance.now() - this.t0;
+    this.lastVoice = performance.now();
+    const total = this.qs.length + (this.aiCount < S.aiFollowUps && AI.ready() ? S.aiFollowUps - this.aiCount : 0);
+    const isAi = this.qi >= Q().length;
+    ui.question(t('q.label', this.qi + 1, total) + (isAi ? t('q.aiTag') : ''), q);
+    ui.hint(); ui.log();
+    if (S.speak) tts.speak(q);
+  },
+  onSpeech(text) {
+    if (this.phase !== 'recording' && this.phase !== 'finishing') return;
+    if (this.phase === 'finishing' || this.thinking) { this.transcript += text; ui.log(); return; }
+    const R = TRIG[LANG];
+    R.end.lastIndex = 0;
+    if (R.end.test(text)) { R.end.lastIndex = 0; this.transcript += text.replace(R.end, ''); ui.log(); this.finish(); return; }
+    R.next.lastIndex = 0;
+    if (R.next.test(text)) { R.next.lastIndex = 0; this.transcript += text.replace(R.next, ''); ui.log(); this.advance('voice'); return; }
+    this.transcript += (LANG === 'en' && this.transcript && !/\s$/.test(this.transcript) ? ' ' : '') + text; ui.log();
+  },
+  tick(db) {
+    const now = performance.now(), dt = now - this.lastTick; this.lastTick = now;
+    const inIntro = now - this.t0 < this.introMs;
+    const voiced = db > this.thr;
+    if (voiced) this.lastVoice = now;
+    const r = this.share.r;
+    if ((voiced || inIntro) && this.paused) { if (r.state === 'paused') r.resume(); this.paused = false; }
+    else if (!voiced && !inIntro && !this.paused && now - this.lastVoice > S.gapMs) { if (r.state === 'recording') r.pause(); this.paused = true; this.cuts++; }
+    if (voiced && !tts.speaking && !inIntro) segmenter.start();
+    if (this.paused) segmenter.end();
+    if (this.paused) this.cutMs += dt; else { this.activeMs += dt; if (voiced && !tts.speaking && !inIntro) this.spokenMs += dt; }
+    ui.meters(now - this.t0, this.cutMs);
+    el.cutInfo.classList.toggle('paused', this.paused);
+    if (S.autoAdvanceSec > 0 && !this.thinking && !tts.speaking && this.spokenMs > 2500) {
+      const silent = now - this.lastVoice, need = S.autoAdvanceSec * 1000;
+      if (silent > need) { this.advance('silence'); return; }
+      if (silent > 1500) ui.hint(t('hint.silent', Math.ceil((need - silent) / 1000))); else ui.hint();
+    }
+  },
+  async closeAnswer() {
+    if (this.answerClosed) return null;
+    this.answerClosed = true;
+    segmenter.end();
+    await asr.drain();
+    const a = { q: this.q, a: this.transcript.trim(), start: this.qStart, end: performance.now() - this.t0 };
+    this.answers.push(a);
+    return a;
+  },
+  async advance() {
+    if (this.phase !== 'recording' || this.thinking || !this.q) return;
+    tts.cancel();
+    this.thinking = true;
+    if (asr.pending) ui.hint(t('hint.wait'));
+    await this.closeAnswer();
+    if (this.phase !== 'recording') { this.thinking = false; return; }
+    if (this.qi + 1 < this.qs.length) { this.qi++; this.thinking = false; this.ask(this.qs[this.qi]); return; }
+    if (this.aiCount < S.aiFollowUps && AI.ready()) {
+      ui.thinking(true);
+      ui.question(t('q.aiWait', this.qi + 2), '…');
+      try {
+        const nq = await AI.nextQuestion(this.answers);
+        if (this.phase !== 'recording') return;
+        if (nq) { this.qs.push(nq); this.aiCount++; this.qi++; ui.thinking(false); this.thinking = false; this.ask(nq); return; }
+      } catch (e) { ui.status(t('s.aiFail', e.message), true); }
+      ui.thinking(false);
+    }
+    this.thinking = false;
+    this.finish();
+  },
+  async finish() {
+    if (this.phase === 'countdown') { this.phase = 'idle'; return; }
+    if (this.phase !== 'recording') return;
+    this.phase = 'finishing';
+    Speech.stop(); tts.cancel();
+    ui.thinking(false); ui.recording(false); ui.pill('pill.finish');
+    ui.question(t('q.finishing'), t('q.finishingHint')); ui.hint('');
+    ui.status(t('s.wrap'));
+    const origMs = performance.now() - this.t0;
+    if (!this.poster) this.capturePoster();
+    const [origBlob, shareBlob] = await Promise.all([this.orig.stop(), this.share.stop()]);
+    if (asr.pending) ui.status(t('s.wait'));
+    const cur = await this.closeAnswer();
+    segmenter.enabled = false;
+    if (cur && cur.end - cur.start < 800 && !cur.a) this.answers.pop();
+    if (origMs < 1500 || !origBlob.size) { ui.status(t('s.short')); this.reset(); return; }
+    const now = this.startDate;
+    let title = '';
+    if (AI.ready() && this.answers.some(a => a.a)) { ui.status(t('s.title')); try { title = await AI.title(this.answers); } catch (_) {} }
+    if (!title) title = t('title.default', now.getMonth() + 1, now.getDate(), EN_MONTH[now.getMonth()].slice(0, 3));
+    ui.status(t('s.cover'));
+    const cover = await makeCover(title, now);
+    const ext = /mp4/.test(origBlob.type) ? 'mp4' : 'webm';
+    const entry = {
+      id: 'v' + now.getTime(), date: isoDate(now), createdAt: now.getTime(), title, ext, mime: origBlob.type, lang: LANG,
+      poster: cover.thumb, coverBlob: cover.blob, origBlob, shareBlob, origMs: Math.round(origMs), shareMs: Math.round(this.activeMs),
+      cutMs: Math.round(this.cutMs), cuts: this.cuts, thr: this.thr, savedTo: '', files: [],
+      qa: this.answers.map(a => ({ q: a.q, a: a.a, start: Math.round(a.start), end: Math.round(a.end) }))
+    };
+    let extra = '';
+    if (FS.ok && FS.handle) {
+      if (await FS.permitted(false)) {
+        ui.status(t('s.saving'));
+        try {
+          const jobs = [['orig', origBlob], ['share', shareBlob], ['cover', cover.blob]];
+          if (S.saveNotes) jobs.push(['notes', new Blob([notesMarkdown(entry)], { type: 'text/markdown' })]);
+          for (const [kind, blob] of jobs) { const name = fileName(entry, kind); await FS.write(name, blob); entry.files.push(name); }
+          entry.savedTo = FS.name();
+        } catch (e) { extra = ' · ' + t('s.fsFail', e.message); }
+      } else extra = ' · ' + t('s.fsPerm');
+    }
+    let msg = t('s.saved', fmtBytes(origBlob.size), fmtBytes(shareBlob.size)) + (entry.savedTo ? t('s.savedTo', entry.savedTo) : '') + extra;
+    try {
+      await DB.put(entry);
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+      entriesCache = null;
+    } catch (e) { msg = t('s.saveFail', e.message); }
+    ui.status(msg, /失败|权限|failed|permission/i.test(msg));
+    this.reset();
+    stopCamera(); ui.idleMode(true); ui.pill('pill.idle');
+    cal.y = now.getFullYear(); cal.m = now.getMonth(); selectedId = entry.id;
+    showView('cal');
+  },
+  reset() {
+    this.phase = 'idle'; this.thinking = false; this.thr = null; this.q = ''; this.answers = []; this.transcript = ''; this.introMs = 0;
+    this.orig = this.share = null; segmenter.enabled = false;
+    ui.meters(0, 0); el.cutInfo.classList.remove('paused'); el.mSeg.textContent = '0 / —';
+    ui.recording(false); ui.thinking(false); ui.pill(cam.running ? 'pill.preview' : 'pill.idle');
+    ui.question(t('q.frame'), t('q.frameHint')); ui.hint(''); ui.log();
+  }
+};
+async function makeCover(title, d) {
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1440;
+  const x = c.getContext('2d');
+  x.drawImage(snapCv, 0, 0);
+  drawCard(x, 1080, 1440, { top: cardDateLine(d), big: title, sub: coverText() + ' · ' + isoDate(d).replace(/-/g, '.') }, 1);
+  const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.86));
+  const th = document.createElement('canvas'); th.width = 270; th.height = 360;
+  th.getContext('2d').drawImage(c, 0, 0, 270, 360);
+  return { blob, thumb: th.toDataURL('image/jpeg', 0.8) };
+}
+function notesMarkdown(e) {
+  const d = new Date(e.createdAt);
+  let md = t('notes.h', e.title, fmtDateLine(d) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()));
+  e.qa.forEach(x => { md += t('notes.q', x.q, x.a || t('d.noText')); });
+  return md;
+}
+
+async function openCamera() {
+  if (cam.running) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { ui.status(t('s.noMedia'), true); return; }
+  ui.status(t('s.opening'));
+  try {
+    await startCamera();
+    ui.idleMode(false); ui.pill('pill.preview');
+    ui.status(t('s.preview') + (FILTER_OK ? '' : t('s.noFilter')));
+    ui.question(t('q.frame'), t('q.frameHint'));
+  } catch (e) { ui.status(t('s.camFail', e.name === 'NotAllowedError' ? t('s.denied') : e.message), true); }
+}
+
+$('#btnCam').addEventListener('click', openCamera);
+el.btnShutter.addEventListener('click', () => {
+  if (session.phase === 'recording') session.finish();
+  else if (session.phase === 'countdown') session.phase = 'idle';
+  else if (!cam.running) openCamera();
+  else session.begin();
+});
+el.btnNext.addEventListener('click', () => session.advance());
+el.frame.addEventListener('click', () => { if (session.phase === 'recording') session.advance(); });
+$('#btnMirror').addEventListener('click', () => { S.mirror = !S.mirror; saveSettings(); ui.status(t(S.mirror ? 's.mirrorOn' : 's.mirrorOff')); });
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input,textarea') || settingsOpen || welcomeOpen()) return;
+  if (e.code === 'Space') { e.preventDefault(); if (session.phase === 'recording') session.advance(); else if (views.cur === 'rec') el.btnShutter.click(); }
+  if (e.key === 'Escape' && session.phase === 'recording') session.finish();
+});
+window.addEventListener('beforeunload', e => { if (session.phase === 'recording' || session.phase === 'finishing') { e.preventDefault(); e.returnValue = ''; } });
+document.addEventListener('visibilitychange', () => { if (document.hidden && session.phase === 'recording') ui.status(t('s.bg'), true); });
+
+/* ---------- 视图切换 ---------- */
+const views = { cur: 'rec' };
+function showView(v) {
+  views.cur = v;
+  $$('.nav [data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  $$('.view').forEach(s => s.classList.toggle('on', s.id === 'view-' + v));
+  if (v === 'cal' && cam.running && session.phase === 'idle') { stopCamera(); ui.idleMode(true); ui.pill('pill.idle'); ui.status(t('s.noCam')); }
+  if (v === 'cal') renderCal();
+}
+$('.nav').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) showView(b.dataset.view); });
+
+/* ---------- 日历 + 详情 ---------- */
+const cal = { y: new Date().getFullYear(), m: new Date().getMonth() };
+let entriesCache = null, selectedId = null;
+async function loadEntries() { if (!entriesCache) entriesCache = (await DB.all()).sort((a, b) => a.createdAt - b.createdAt); return entriesCache; }
+async function renderCal() {
+  let es = [];
+  try { es = await loadEntries(); } catch (e) { $('#calStat').textContent = e.message; }
+  const byDate = {}; es.forEach(e => (byDate[e.date] = byDate[e.date] || []).push(e));
+  const sel = es.find(e => e.id === selectedId);
+  $('#calTitle').textContent = LANG === 'zh' ? CN_MONTH[cal.m] + '月' : EN_MONTH[cal.m];
+  $('#calYear').textContent = (LANG === 'zh' ? cnYear(cal.y) : cal.y) + ' · ' + pad(cal.m + 1);
+  const startPad = (new Date(cal.y, cal.m, 1).getDay() + 6) % 7, days = new Date(cal.y, cal.m + 1, 0).getDate(), today = isoDate();
+  let html = '', monthN = 0, monthMs = 0;
+  for (let i = 0; i < startPad; i++) html += '<div class="day pad"></div>';
+  for (let d = 1; d <= days; d++) {
+    const iso = cal.y + '-' + pad(cal.m + 1) + '-' + pad(d), list = byDate[iso];
+    if (list) { monthN += list.length; list.forEach(e => monthMs += e.origMs || 0); }
+    const last = list && list[list.length - 1];
+    html += '<div class="day' + (list ? ' has' : '') + (iso === today ? ' today' : '') + (sel && sel.date === iso ? ' sel' : '') + '" data-date="' + iso + '">'
+      + (last && last.poster ? '<img src="' + last.poster + '" alt="">' : '') + '<span>' + d + '</span>' + (list && list.length > 1 ? '<b>' + list.length + '</b>' : '') + '</div>';
+  }
+  $('#grid').innerHTML = html;
+  $('#calStat').textContent = t('cal.stat', monthN, fmtTime(monthMs), es.length);
+  storageUsage().then(x => { $('#calUsage').textContent = x; $('#sideUsage').textContent = x; });
+  renderStreak();
+  detail.render(sel || null, sel ? byDate[sel.date] : null);
+}
+async function renderStreak() {
+  let es = []; try { es = await loadEntries(); } catch (_) {}
+  const days = new Set(es.map(e => e.date));
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const todayIso = isoDate(today);
+  let streak = 0; const d = new Date(today);
+  if (!days.has(isoDate(d))) d.setDate(d.getDate() - 1);
+  while (days.has(isoDate(d))) { streak++; d.setDate(d.getDate() - 1); }
+  $('#streakLabel').textContent = t('streak', streak);
+  const start = new Date(today); start.setDate(today.getDate() - (today.getDay() + 6) % 7 - 7 * 11);
+  let html = '';
+  for (let i = 0; i < 84; i++) {
+    const x = new Date(start); x.setDate(start.getDate() + i); const iso = isoDate(x);
+    html += '<i class="' + (days.has(iso) ? 'on' : '') + (iso === todayIso ? ' today' : '') + (x > today ? ' fut' : '') + '"></i>';
+  }
+  $('#streakDots').innerHTML = html;
+}
+$('#calPrev').addEventListener('click', () => { cal.m--; if (cal.m < 0) { cal.m = 11; cal.y--; } renderCal(); });
+$('#calNext').addEventListener('click', () => { cal.m++; if (cal.m > 11) { cal.m = 0; cal.y++; } renderCal(); });
+$('#grid').addEventListener('click', async e => {
+  const d = e.target.closest('.day.has'); if (!d) return;
+  const list = (await loadEntries()).filter(x => x.date === d.dataset.date);
+  if (list.length) { selectedId = list[list.length - 1].id; renderCal(); }
+});
+async function storageUsage() {
+  try { if (!navigator.storage || !navigator.storage.estimate) return ''; const e = await navigator.storage.estimate(); return t('usage', fmtBytes(e.usage || 0), fmtBytes(e.quota || 0)); } catch (_) { return ''; }
+}
+function fileName(e, kind) {
+  const title = (e.title || t('journal')).replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, LANG === 'zh' ? '' : '-');
+  const d = new Date(e.createdAt);
+  const ext = kind === 'cover' ? 'jpg' : kind === 'notes' ? 'md' : e.ext;
+  return e.date + '_' + pad(d.getHours()) + pad(d.getMinutes()) + '_' + title + '_' + t('fn.' + kind) + '.' + ext;
+}
+function download(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000);
+}
+function canShareFiles(blob, name) { try { const f = new File([blob], name, { type: blob.type }); return !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (_) { return false; } }
+async function shareFile(blob, name, title) { try { await navigator.share({ files: [new File([blob], name, { type: blob.type })], title }); } catch (_) {} }
+
+const detail = {
+  el: $('#detail'), urls: [],
+  revoke() { this.urls.forEach(u => URL.revokeObjectURL(u)); this.urls = []; },
+  render(entry, siblings) {
+    const v0 = $('video', this.el); if (v0) { v0.pause(); v0.removeAttribute('src'); v0.load(); }
+    this.revoke();
+    if (!entry) { this.el.innerHTML = '<div class="placeholder">' + t('d.placeholder') + '</div>'; return; }
+    const d = new Date(entry.createdAt), hasShare = entry.shareBlob && entry.shareBlob.size > 0;
+    const urlO = URL.createObjectURL(entry.origBlob), urlS = hasShare ? URL.createObjectURL(entry.shareBlob) : urlO;
+    this.urls.push(urlO); if (hasShare) this.urls.push(urlS);
+    const sib = siblings && siblings.length > 1 ? siblings : null;
+    const shO = canShareFiles(entry.origBlob, fileName(entry, 'orig')), shS = hasShare && canShareFiles(entry.shareBlob, fileName(entry, 'share'));
+    let saved;
+    if (entry.savedTo) saved = '<div class="saved"><span>' + t('d.savedTo') + '</span><span class="fld">' + esc(entry.savedTo) + '/</span><span class="sp"></span><span class="meta">' + entry.files.length + ' files</span></div>';
+    else if (FS.ok) saved = '<div class="saved warn"><span>' + t('d.notSaved') + '</span><span class="sp"></span><button class="btn sm solid" id="btnPickFolder">' + t('d.choose') + '</button></div>';
+    else saved = '<div class="saved"><span>' + t('d.fsNo') + '</span></div>';
+    const fileCard = (kind, blob, label, sub, share) =>
+      '<div class="file"><b>' + label + '</b><span>' + sub + '</span><div class="acts">'
+      + (entry.savedTo ? '<span class="meta" style="align-self:center;word-break:break-all;line-height:1.5;flex-basis:100%;letter-spacing:.04em">' + esc((entry.files || [])[{ orig: 0, share: 1, cover: 2, notes: 3 }[kind]] || fileName(entry, kind)) + '</span>' : '')
+      + '<button class="btn sm" data-dl="' + kind + '">' + t('d.saveAs') + '</button>'
+      + (share ? '<button class="btn sm amber" data-sh="' + kind + '">' + t('d.shareBtn') + '</button>' : '') + '</div></div>';
+    this.el.innerHTML =
+      '<div class="meta">' + fmtDateLine(d) + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' · ' + entry.ext.toUpperCase() + '</div>'
+      + '<input class="title-in" id="titleIn" value="' + esc(entry.title) + '" spellcheck="false">'
+      + (sib ? '<div class="day-chips">' + sib.map(s => '<button class="chip' + (s.id === entry.id ? ' on' : '') + '" data-sib="' + s.id + '">' + pad(new Date(s.createdAt).getHours()) + ':' + pad(new Date(s.createdAt).getMinutes()) + ' ' + esc(s.title) + '</button>').join('') + '</div>' : '')
+      + saved
+      + '<div class="player"><video id="vplay" controls playsinline preload="metadata" poster="' + (entry.poster || '') + '" src="' + urlS + '"></video>'
+      + '<div class="aside">'
+      + (hasShare ? '<div class="seg" id="vseg"><button data-src="' + urlS + '" class="on">' + t('d.seeShare') + '</button><button data-src="' + urlO + '">' + t('d.seeOrig') + '</button></div>' : '')
+      + (hasShare ? fileCard('share', entry.shareBlob, t('d.share'), fmtTime(entry.shareMs) + ' · ' + fmtBytes(entry.shareBlob.size) + '<br>' + t('d.shareSub', entry.cuts, fmtTime(entry.cutMs)), shS) : '')
+      + fileCard('orig', entry.origBlob, t('d.orig'), fmtTime(entry.origMs) + ' · ' + fmtBytes(entry.origBlob.size) + ' · ' + t('d.origSub'), shO)
+      + (entry.coverBlob ? fileCard('cover', entry.coverBlob, t('d.cover'), '1080×1440 · JPG', false) : '')
+      + '</div></div>'
+      + '<ol class="qa">' + (entry.qa || []).map(x => '<li><b>' + esc(x.q) + '<time>' + fmtTime(x.start) + '–' + fmtTime(x.end) + '</time></b>' + (x.a ? '<p>' + esc(x.a) + '</p>' : '<p style="opacity:.45">' + t('d.noText') + '</p>') + '</li>').join('') + '</ol>'
+      + '<div class="actions"><button class="btn danger sm" id="btnDel">' + t('d.del') + '</button></div>';
+    $('#btnDel', this.el).onclick = async () => {
+      if (!confirm(t('d.delConfirm', entry.title))) return;
+      await DB.del(entry.id); entriesCache = null; selectedId = null; renderCal();
+    };
+    $('#titleIn', this.el).onchange = async ev => {
+      entry.title = ev.target.value.trim() || entry.title; ev.target.value = entry.title;
+      await DB.put(entry); entriesCache = null; renderCal();
+    };
+    const pick = $('#btnPickFolder', this.el);
+    if (pick) pick.onclick = async () => { if (await FS.choose()) { renderCal(); syncSettings(); } };
+    const vs = $('#vseg', this.el);
+    if (vs) vs.onclick = ev => {
+      const b = ev.target.closest('[data-src]'); if (!b) return;
+      $$('button', vs).forEach(x => x.classList.toggle('on', x === b));
+      const v = $('#vplay', this.el), tm = v.currentTime; v.src = b.dataset.src; v.currentTime = tm;
+    };
+    this.el.onclick = ev => {
+      const dl = ev.target.closest('[data-dl]'), sh = ev.target.closest('[data-sh]'), sb = ev.target.closest('[data-sib]');
+      const blobOf = k => k === 'orig' ? entry.origBlob : k === 'share' ? entry.shareBlob : entry.coverBlob;
+      if (dl) download(blobOf(dl.dataset.dl), fileName(entry, dl.dataset.dl));
+      if (sh) shareFile(blobOf(sh.dataset.sh), fileName(entry, sh.dataset.sh), entry.title);
+      if (sb) { selectedId = sb.dataset.sib; renderCal(); }
+    };
+  }
+};
+
+/* ---------- 设置窗口 ---------- */
+let settingsOpen = false;
+const settingsModal = $('#settingsModal');
+function openSettings(pane) { settingsOpen = true; settingsModal.classList.add('on'); syncSettings(); if (pane) showPane(pane); }
+function closeSettings() { settingsOpen = false; settingsModal.classList.remove('on'); }
+function showPane(p) {
+  $$('#paneNav button').forEach(b => b.classList.toggle('on', b.dataset.pane === p));
+  $$('.pane').forEach(x => x.classList.toggle('on', x.dataset.pane === p));
+}
+$('#btnSettings').addEventListener('click', () => openSettings());
+$('#btnCloseSettings').addEventListener('click', closeSettings);
+$('#paneNav').addEventListener('click', e => { const b = e.target.closest('[data-pane]'); if (b) showPane(b.dataset.pane); });
+settingsModal.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (settingsOpen) closeSettings(); else if (welcomeOpen()) closeWelcome(); } });
+
+function rangeLabel(k, v) { if (k === 'thresholdDb') return v + ' dB'; if (k === 'gapMs') return (v / 1000).toFixed(1) + ' s'; return String(v); }
+function syncSettings() {
+  $$('[data-k]').forEach(node => {
+    const k = node.dataset.k; let v = getPath(S, k);
+    if (k === 'questions') v = Q();
+    if (k === 'lang') v = LANG;
+    if (node.classList.contains('seg')) { $$('button', node).forEach(b => b.classList.toggle('on', node.dataset.str ? b.dataset.v === v : parseFloat(b.dataset.v) === Number(v))); return; }
+    if (node.type === 'checkbox') node.checked = !!v;
+    else if (k === 'questions') node.value = v.join('\n');
+    else node.value = v == null ? '' : v;
+    if (node.type === 'range') node.nextElementSibling.textContent = rangeLabel(k, v);
+    if (k === 'coverText') node.placeholder = t('journal');
+  });
+  $('#folderName').textContent = FS.ok ? (FS.handle ? FS.name() + '/' : t('data.folderNone')) : '';
+  $('#folderSub').textContent = FS.ok ? t('data.folderSub') : t('data.folderNo');
+  $('#btnFolder').disabled = !FS.ok; $('#btnFolderClear').style.display = FS.handle ? '' : 'none';
+  storageUsage().then(x => { $('#usage').textContent = x || '—'; $('#sideUsage').textContent = x; });
+}
+function onSettingInput(e) {
+  const node = e.target, k = node.dataset.k; if (!k || node.classList.contains('seg')) return;
+  let v;
+  if (node.type === 'checkbox') v = node.checked;
+  else if (node.type === 'range') v = parseFloat(node.value);
+  else if (k === 'questions') { v = node.value.split('\n').map(s => s.trim()).filter(Boolean); if (!v.length) return; S.questions[LANG] = v; saveSettings(); return; }
+  else v = node.value.trim();
+  setPath(S, k, v); saveSettings();
+  if (node.type === 'range') node.nextElementSibling.textContent = rangeLabel(k, v);
+}
+settingsModal.addEventListener('input', onSettingInput);
+settingsModal.addEventListener('change', onSettingInput);
+settingsModal.addEventListener('click', e => {
+  const seg = e.target.closest('.seg[data-k]'), b = e.target.closest('button[data-v]');
+  if (seg && b) {
+    const v = seg.dataset.str ? b.dataset.v : parseFloat(b.dataset.v);
+    if (seg.dataset.k === 'lang') { setLang(v); return; }
+    setPath(S, seg.dataset.k, v); saveSettings(); syncSettings();
+    if (seg.dataset.k === 'theme') applyTheme();
+    return;
+  }
+  const p = e.target.closest('[data-preset]');
+  if (p) { const pr = PRESETS[p.dataset.preset]; S.ai.baseUrl = pr.baseUrl; S.ai.model = pr.model; S.ai.asrMode = pr.asrMode; S.ai.asrModel = pr.asrModel; saveSettings(); syncSettings(); $('#aiTestMsg').textContent = t('ai.filled', I18N[LANG][pr.label] || pr.label); }
+});
+$('#btnAiTest').addEventListener('click', async () => {
+  const msg = $('#aiTestMsg'), btn = $('#btnAiTest');
+  if (!AI.ready()) { msg.textContent = t('ai.testNeed'); return; }
+  btn.disabled = true; msg.textContent = t('ai.testing');
+  try {
+    const r = await AI.chat([{ role: 'user', content: t('ai.ping') }], { max_tokens: 12, temperature: 0 });
+    let out = t('ai.testChat', r || 'ok');
+    if (AI.asrApi()) {
+      msg.textContent = out + t('ai.testAsr');
+      try {
+        const sr = 16000, n = sr, chunk = new Float32Array(n);
+        for (let i = 0; i < n; i++) chunk[i] = Math.sin(i / sr * 2 * Math.PI * 440) * 0.2 * Math.exp(-i / sr * 3);
+        await AI.recognize(encodeWav16k([chunk], n, sr));
+        out += t('ai.testAsrOk');
+      } catch (e) { out += t('ai.testAsrFail', e.message); }
+    }
+    msg.textContent = out;
+  } catch (e) { msg.textContent = '✗ ' + e.message; }
+  btn.disabled = false;
+});
+$('#btnWipe').addEventListener('click', async () => {
+  if (!confirm(t('d.wipeConfirm'))) return;
+  await DB.clear(); entriesCache = null; selectedId = null; syncSettings(); if (views.cur === 'cal') renderCal();
+});
+$('#btnShowWelcome').addEventListener('click', () => { closeSettings(); openWelcome(); });
+$('#btnFolder').addEventListener('click', async () => { if (await FS.choose()) { syncSettings(); if (views.cur === 'cal') renderCal(); } });
+$('#btnFolderClear').addEventListener('click', async () => { await FS.clear(); syncSettings(); if (views.cur === 'cal') renderCal(); });
+
+/* ---------- 语言 / 主题快捷 ---------- */
+function setLang(l) {
+  LANG = l; S.lang = l; saveSettings();
+  applyI18n(); renderFilters(); ui.log();
+  if (session.phase === 'idle') { ui.question(t('q.frame'), t('q.frameHint')); ui.pill(cam.running ? 'pill.preview' : 'pill.idle'); if (!cam.running) ui.status(t('s.noCam')); }
+  ui.meters(0, 0);
+  if (settingsOpen) syncSettings();
+  if (views.cur === 'cal') renderCal(); else renderStreak();
+}
+$('#btnLang').addEventListener('click', () => setLang(LANG === 'zh' ? 'en' : 'zh'));
+$('#btnTheme').addEventListener('click', () => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  S.theme = dark ? 'light' : 'dark'; saveSettings(); applyTheme(); if (settingsOpen) syncSettings();
+});
+
+/* ---------- 首次介绍 ---------- */
+const welcomeModal = $('#welcomeModal');
+const welcomeOpen = () => welcomeModal.classList.contains('on');
+function openWelcome() { $('#welcomeNoMore').checked = false; welcomeModal.classList.add('on'); }
+function closeWelcome() { if ($('#welcomeNoMore').checked) localStorage.setItem('vlog.welcomeDismissed', '1'); welcomeModal.classList.remove('on'); }
+$('#btnWelcomeGo').addEventListener('click', closeWelcome);
+$('#btnCloseWelcome').addEventListener('click', closeWelcome);
+welcomeModal.addEventListener('click', e => { if (e.target === welcomeModal) closeWelcome(); const b = e.target.closest('[data-lang]'); if (b) setLang(b.dataset.lang); });
+
+/* ---------- 启动 ---------- */
+applyTheme(); applyI18n(); renderFilters(); ui.vu(-100); ui.log();
+ui.question(t('q.frame'), t('q.frameHint')); ui.pill('pill.idle'); ui.meters(0, 0);
+ui.status(!window.MediaRecorder ? t('s.noRecorder') : !window.isSecureContext ? t('s.insecure') : t('s.noCam'), !window.MediaRecorder || !window.isSecureContext);
+FS.load().then(() => { storageUsage().then(x => { $('#sideUsage').textContent = x; }); });
+renderStreak();
+if (!localStorage.getItem('vlog.welcomeDismissed')) openWelcome();
+})();
+</script>
+</body>
+</html>
