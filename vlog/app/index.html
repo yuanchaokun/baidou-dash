@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#f3f6f4" id="themeColor">
-<title>今记 · 视频日记</title>
+<title>白豆 Cam · 视频日志</title>
 
 <style>
 :root {
@@ -572,13 +572,62 @@ main {background:var(--card);border:1px solid var(--line);border-radius:13px;pad
 </style>
 <link rel="icon" type="image/png" href="/assets/jinji-icon.png">
 <link rel="apple-touch-icon" href="/assets/jinji-icon.png">
+<style data-source="simple.css">
+/* Recording is the default. All optional tools open on demand. */
+:root{--bg:#f7f6f2;--card:#fff;--ink:#26312c;--ink-2:#626b65;--line:#dedfd8}
+*{animation:none!important}
+.app{max-width:760px;padding:0 24px 22px}.top{padding:22px 0 18px;border-bottom:1px solid var(--line)}
+.brand b{font-size:20px;letter-spacing:-.5px}.brand small,.top .quick,.workspace-title,.app>.foot{display:none!important}
+.brand .brand-icon{width:29px;height:29px;border-radius:8px}
+.workspace-bar{padding:15px 0 0}.nav{gap:22px}.nav button,.nav button.on{border:0;border-radius:0;padding:8px 0;background:none;box-shadow:none;text-decoration:none;font-size:14px;min-height:38px}.nav button.on{border-bottom:2px solid var(--ink);color:var(--ink)}
+main{background:none;border:0;box-shadow:none;padding:24px 0;border-radius:0}
+#view-rec.on{display:block}.panel{display:none!important}
+#view-rec .camera-column{display:block;position:static;border:0;padding:0;max-width:440px;margin:auto}
+.diary-heading{display:flex;align-items:center;gap:14px;margin-bottom:17px}.diary-heading h1{font-size:21px;font-weight:650;letter-spacing:-.5px;margin:0 auto 0 0}
+.diary-heading .text-link{font-size:12px;color:var(--ink-2);min-height:34px;text-decoration:underline;text-underline-offset:4px}
+#view-rec .frame,#view-rec.capture-step .frame,#view-rec.recording .frame{width:100%;max-width:350px;min-width:0;aspect-ratio:3/4;height:auto;margin:auto;border:1px solid var(--line);border-radius:12px;box-shadow:none}
+.idle,[data-theme=dark] .idle{background:var(--card)}.idle .camera-symbol{margin:0 auto 20px;background:none;box-shadow:none}
+.idle-title{font-size:18px;font-weight:500}.idle-copy,#btnCam,.idle p,.corner,#backPrepare,#qHint,#cutInfo{display:none!important}
+.diary-mode .qcard{display:none!important}
+.capture-dock{max-width:350px;margin:auto;padding-top:16px;gap:8px}.controls{justify-content:center}
+.controls .shutter{min-width:180px;height:50px;border-radius:8px;font-size:15px;box-shadow:none;background:#286346;border-color:#286346;color:white}
+#btnNext{min-height:48px;border:1px solid var(--line);border-radius:8px}
+#status{display:none}#status.err{display:block;font-size:12px;color:#9b3931;margin-top:12px}
+.capture-note{font-size:11px;line-height:1.7;color:var(--ink-2);text-align:center;margin:5px 0 0}
+#cameraOptions{font-size:12px;color:var(--ink-2);text-align:center}#cameraOptions summary{cursor:pointer;padding:6px;list-style:none;text-decoration:underline;text-underline-offset:4px}
+#cameraOptions .filters{display:flex;justify-content:center;margin-top:8px}#cameraOptions #btnMirror{font-size:12px}
+.recording #cameraOptions,.recording .capture-note{display:none}
+#customDialog{width:min(520px,calc(100% - 28px));max-height:88dvh;padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);box-shadow:0 12px 50px #0002}
+#customDialog::backdrop{background:#1b2b2460}
+.custom-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+.custom-head h2{margin:0;font-size:20px;font-weight:650}.custom-head button{font-size:18px;color:var(--ink)}
+#coachPrep .question-heading{display:none}.editable-questions textarea{min-height:60px;padding:10px 6px}
+.ai-compose{border-top:1px solid var(--line);margin-top:17px;padding-top:4px}.ai-compose>summary{font-size:13px;cursor:pointer;padding:14px 0;color:var(--ink-2)}
+.ai-compose .coach-fields{margin-top:8px}.ai-compose .topic-note{display:none}.ai-compose .coach-note{font-size:11px}.ai-compose .goal-label span{display:none}
+#prepareGo{width:100%;margin-top:20px}.local-note{display:none}
+#view-cal.on{gap:26px;grid-template-columns:minmax(215px,.85fr) minmax(0,1.15fr)}.cal-head h2{font-size:26px}.detail{padding-left:23px}.detail>.meta{font-size:10px}.detail .title-in{font-size:19px!important}
+.detail .player{margin-top:14px}.player video{border-radius:9px;max-height:480px}
+.export-details{font-size:12px;margin:18px 0 0;border-top:1px solid var(--line);padding-top:12px}
+.export-details summary,.feedback-section summary{font-size:12px;color:var(--ink-2);font-weight:400;cursor:pointer}
+.export-details .aside{padding-top:14px}.export-details .saved{margin-top:14px}.download-video{font-size:12px;min-height:38px;margin-top:12px;background:transparent;border:1px solid var(--line);box-shadow:none}
+.feedback-section{padding-top:12px;margin-top:16px}.feedback-body>p{font-size:11px}.old-records{grid-column:1/-1;margin:8px 0;font-size:11px}
+[data-theme=dark]{--bg:#1c201e;--card:#252a27;--ink:#f2f4ef;--ink-2:#c1c8be;--line:#4b534d}
+@media(max-width:760px){.app{padding:0 18px 20px;max-width:600px}.top{padding:16px 0 12px}.workspace-bar{padding-top:10px}main{padding:22px 0}.diary-heading{margin-bottom:14px}.diary-heading h1{font-size:20px}
+#view-rec .frame,#view-rec.capture-step .frame,#view-rec.recording .frame{width:min(100%,calc((100dvh - 305px)*.75));max-width:350px;min-width:195px}
+.capture-dock{padding-top:13px}.controls .shutter{height:48px;min-width:180px}.capture-note{font-size:10px}#view-cal.on{display:grid;grid-template-columns:minmax(0,1fr)}.detail{padding:22px 0 0}.cal{max-width:100%}#customDialog{padding:18px}.editable-questions textarea,#coachGoal{font-size:16px}}
+@media(max-width:360px){.app{padding-left:14px;padding-right:14px}.brand b{font-size:18px}.diary-heading{gap:10px}.diary-heading h1{font-size:18px}}
+
+
+.remove-question{border:0;background:none;color:var(--ink-2);font-size:20px;min-width:32px;min-height:44px;margin-top:4px}.remove-question:disabled{visibility:hidden}
+
+</style>
 </head>
 <body>
 <div class="app">
   <header class="top">
     <div class="brand">
-      <img class="glyph brand-icon" src="/assets/jinji-icon.png" alt="今记" width="48" height="48">
-      <div><b data-i18n="brand">今记</b><small><span class="zh">我的视频记录簿</span><span class="en">My video journal</span></small></div>
+      <img class="glyph brand-icon" src="/assets/jinji-icon.png" alt="白豆 Cam" width="48" height="48">
+      <div><b data-i18n="brand">白豆 Cam</b><small><span class="zh">我的视频记录簿</span><span class="en">My video journal</span></small></div>
     </div>
     <div class="top-right">
       <div class="streak" id="streak"><small id="streakLabel"></small><div class="dots" id="streakDots"></div></div>
@@ -616,7 +665,7 @@ main {background:var(--card);border:1px solid var(--line);border-radius:13px;pad
         <div class="count" id="count"></div>
         <div class="idle" id="idle">
           <div>
-            <div class="camera-symbol" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><rect x="10" y="19" width="44" height="32" rx="9"/><path d="m21 19 4-7h14l4 7"/><circle cx="32" cy="35" r="9"/></svg></div><h2 class="idle-title"><span class="zh">准备好就开聊。</span><span class="en">Ready when you are.</span></h2><div class="idle-copy"><span class="zh">先看看画面，再按红色按钮录制。</span><span class="en">Check the frame, then press the red button.</span></div>
+            <div class="camera-symbol" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><rect x="10" y="19" width="44" height="32" rx="9"/><path d="m21 19 4-7h14l4 7"/><circle cx="32" cy="35" r="9"/></svg></div><h2 class="idle-title"><span class="zh">今天，想说点什么？</span><span class="en">What is on your mind?</span></h2><div class="idle-copy"><span class="zh">先看看画面，再按红色按钮录制。</span><span class="en">Check the frame, then press the red button.</span></div>
             <button id="btnCam" data-i18n="idle.btn">开启相机</button>
             <p data-i18n="idle.sub">竖版 3:4 · 视频保存在当前浏览器</p>
           </div>
@@ -664,7 +713,7 @@ main {background:var(--card);border:1px solid var(--line);border-radius:13px;pad
       <div class="detail" id="detail"></div>
     </section>
   </main>
-  <footer class="foot"><span id="sideUsage"></span><a href="/">今记 · 视频日志</a></footer>
+  <footer class="foot"><span id="sideUsage"></span><a href="/">白豆 Cam · 视频日志</a></footer>
 </div>
 
 <!-- 设置 -->
@@ -855,8 +904,8 @@ main {background:var(--card);border:1px solid var(--line);border-radius:13px;pad
 
       <div class="pane" data-pane="about">
         <div class="about">
-          <img class="glyph brand-icon" src="/assets/jinji-icon.png" alt="今记" width="48" height="48">
-          <h3 data-i18n="brand">今记</h3>
+          <img class="glyph brand-icon" src="/assets/jinji-icon.png" alt="白豆 Cam" width="48" height="48">
+          <h3 data-i18n="brand">白豆 Cam</h3>
           <p data-i18n-html="about.text"></p>
         </div>
       </div>
@@ -865,12 +914,12 @@ main {background:var(--card);border:1px solid var(--line);border-radius:13px;pad
 </div>
 
 <!-- 首次介绍 -->
-<div class="modal" id="welcomeModal" role="dialog" aria-modal="true" aria-label="欢迎使用今记 / Welcome to Jinji">
+<div class="modal" id="welcomeModal" role="dialog" aria-modal="true" aria-label="欢迎使用白豆 Cam / Welcome to Baidou Cam">
   <div class="win welcome-win">
     <div class="dots"><button class="dot close" id="btnCloseWelcome" aria-label="关闭介绍 / Close introduction"></button><span class="dot"></span><span class="dot"></span></div>
     <div class="body">
-      <img class="glyph brand-icon" src="/assets/jinji-icon.png" alt="今记" width="48" height="48">
-      <h1 data-i18n="brand">今记</h1>
+      <img class="glyph brand-icon" src="/assets/jinji-icon.png" alt="白豆 Cam" width="48" height="48">
+      <h1 data-i18n="brand">白豆 Cam</h1>
       <p class="sub" data-i18n-html="w.sub"></p>
       <div class="lang-row">
         <button class="chip" data-lang="zh">中文</button>
@@ -890,7 +939,7 @@ main {background:var(--card);border:1px solid var(--line);border-radius:13px;pad
   </div>
 </div>
 
-<script src="./coach.js"></script>
+<script src="/app/coach.js"></script>
 <script>
 (function () {
 'use strict';
@@ -917,7 +966,7 @@ const setPath = (o, p, v) => { const ks = p.split('.'); const last = ks.pop(); c
 /* ---------- 文案 ---------- */
 const I18N = {
   zh: {
-    brand: '今记', 'nav.rec': '录制', 'nav.cal': '回看', 'nav.settings': '设置', back: '← 首页',
+    brand: '白豆 Cam', 'nav.rec': '录制', 'nav.cal': '回看', 'nav.settings': '设置', back: '← 首页',
     'idle.btn': '开启相机', 'idle.sub': '竖版 3:4 · 视频保存在当前浏览器',
     'pill.idle': '待机', 'pill.preview': '预览', 'pill.count': '倒数', 'pill.rec': '录制中', 'pill.finish': '整理中',
     'm.dur': '时长', 'm.cut': '剪去沉默', 'm.seg': '段 / 阈值', cut: '剪去 {0}',
@@ -960,7 +1009,7 @@ const I18N = {
     'data.lead': '录完自动写入你选的文件夹（原画、分享版、封面、文字稿）；浏览器里另存一份用于日历回看。', 'data.folder': '保存文件夹', 'data.folderSub': '每次录完自动写入，文件按日期和标题命名', 'data.folderNone': '还没选择', 'data.folderNo': '此浏览器不支持（需要 Chrome / Edge）',
     'data.choose': '选择', 'data.clear': '清除', 'data.notes': '同时保存文字稿', 'data.notesSub': '问题和识别出的回答，存成 .md',
     'data.storage': '浏览器内存储', 'data.wipe': '清空全部', 'data.welcome': '首次介绍', 'data.welcomeSub': '重新显示打开页面时的介绍', 'data.again': '再看一次',
-    'data.note': '浏览器里的副本用于日历回看；清理浏览器数据会丢，文件夹里的不会。', 'about.text': '对着镜头回答几个问题，就是今天的日志。<br>今记 · 视频保存在本机。<br>启用语音识别或 AI 时，相关音频或文字会发送至所选服务。',
+    'data.note': '浏览器里的副本用于日历回看；清理浏览器数据会丢，文件夹里的不会。', 'about.text': '对着镜头回答几个问题，就是今天的日志。<br>白豆 Cam · 视频保存在本机。<br>启用语音识别或 AI 时，相关音频或文字会发送至所选服务。',
     'w.sub': '对着镜头，回答几个问题，<br>说完就是今天的日志。', 'w.f1': '问题出现在画面上', 'w.f1s': '预设的问题会逐个出现。开启语音识别后，说「回答完了」就能进入下一题。',
     'w.f2': '沉默自动剪掉', 'w.f2s': '保留完整原画，也生成一份剪掉停顿的分享版。',
     'w.f3': '字幕、封面、自动命名', 'w.f3s': '问题字幕、日期封面自动加好。连接 AI 后，还能追问和起标题。',
@@ -972,7 +1021,7 @@ const I18N = {
     'ai.user': '今天是 {0}。\n已问与回答：\n{1}\n\n请给出下一个问题。', 'ai.titleSys': '根据一段视频日志的问答，起一个不超过 12 个字的中文标题，具体、有画面感、不用引号，只输出标题。', 'ai.unheard': '（没听清 / 未转写）', 'ai.q': '问：', 'ai.a': '答：', 'ai.ping': '用四个字回复：连接成功'
   },
   en: {
-    brand: 'Jinji', 'nav.rec': 'Record', 'nav.cal': 'Look back', 'nav.settings': 'Settings', back: '← Home',
+    brand: 'Baidou Cam', 'nav.rec': 'Record', 'nav.cal': 'Look back', 'nav.settings': 'Settings', back: '← Home',
     'idle.btn': 'Open camera', 'idle.sub': 'Portrait 3:4 · saved in this browser',
     'pill.idle': 'Idle', 'pill.preview': 'Preview', 'pill.count': 'Countdown', 'pill.rec': 'Recording', 'pill.finish': 'Finishing',
     'm.dur': 'Duration', 'm.cut': 'Silence cut', 'm.seg': 'Seg / thr', cut: 'cut {0}',
@@ -1015,7 +1064,7 @@ const I18N = {
     'data.lead': 'Recordings are written straight into a folder you choose (original, share cut, cover, notes); a browser copy is kept for the calendar.', 'data.folder': 'Save folder', 'data.folderSub': 'Written automatically after each recording, named by date and title', 'data.folderNone': 'not chosen', 'data.folderNo': 'Not supported here (needs Chrome / Edge)',
     'data.choose': 'Choose', 'data.clear': 'Clear', 'data.notes': 'Also save notes', 'data.notesSub': 'Questions and recognized answers as .md',
     'data.storage': 'Browser storage', 'data.wipe': 'Delete all', 'data.welcome': 'Intro', 'data.welcomeSub': 'Show the welcome screen again', 'data.again': 'Show again',
-    'data.note': 'The browser copy is for the calendar; clearing site data removes it, folder files stay.', 'about.text': 'Answer a few questions on camera — that’s today’s entry.<br>Jinji · Videos stay on this device.<br>Speech recognition and AI send relevant audio or text to the selected service.',
+    'data.note': 'The browser copy is for the calendar; clearing site data removes it, folder files stay.', 'about.text': 'Answer a few questions on camera — that’s today’s entry.<br>Baidou Cam · Videos stay on this device.<br>Speech recognition and AI send relevant audio or text to the selected service.',
     'w.sub': 'Face the camera, answer a few questions —<br>that’s today’s entry.', 'w.f1': 'Questions on screen', 'w.f1s': 'Preset questions appear in the frame one by one and can be read aloud. Say “I’m done” to move on — hands off the keyboard.',
     'w.f2': 'Silence cut automatically', 'w.f2s': 'The original is kept whole; a second, tighter share cut drops the pauses and is small enough for chats.',
     'w.f3': 'Captions, cover, auto-naming', 'w.f3s': 'The share cut carries question captions and a dated title card; with an API key, AI asks follow-ups and names the entry.',
@@ -1231,7 +1280,7 @@ function drawOverlays(c, W, H) {
     drawCard(c, W, H, { top: cardDateLine(session.startDate), big: cardBigDate(session.startDate), sub: coverText() }, fade);
     return;
   }
-  if (S.burnTarget !== 'off' && session.q && !session.thinking) drawCaption(c, W, H, session.q, session.answers.length + 1);
+  if (!session.diary && S.burnTarget !== 'off' && session.q && !session.thinking) drawCaption(c, W, H, session.q, session.answers.length + 1);
 }
 function coverText() { return (S.coverText || '').trim() || t('journal'); }
 function cardDateLine(d) { return LANG === 'zh' ? cnYear(d.getFullYear()) + '年 · 星期' + CN_WD[d.getDay()] : EN_WD[d.getDay()].toUpperCase() + ' · ' + d.getFullYear(); }
@@ -1579,16 +1628,16 @@ const session = {
       this.orig = makeRecorder(cv, S.origMbps, this.mime);
       this.share = makeRecorder(shareCv, S.shareMbps, this.mime);
     } catch (e) { ui.status(t('s.recFail', e.message), true); this.phase = 'idle'; return; }
-    this.coachContext = S.coach ? {topic:S.coach.topic,style:S.coach.style,goal:S.coach.goal} : null;
-    this.qs = Q().slice(); this.qi = 0; this.answers = []; this.aiCount = 0; this.q = ''; this.transcript = '';
+    this.coachContext = this.diary ? {topic:'daily',goal:'',mode:'diary'} : {...S.coach,mode:'custom'};
+    this.qs = this.diary ? [LANG === 'zh' ? '视频日志' : 'Video diary'] : Q().slice(); this.qi = 0; this.answers = []; this.aiCount = 0; this.q = ''; this.transcript = '';
     this.activeMs = 0; this.cutMs = 0; this.cuts = 0; this.spokenMs = 0; this.paused = false; this.poster = null; this.thinking = false;
     this.startDate = new Date();
-    this.introMs = S.burnTarget === 'off' ? 0 : S.introSec * 1000;
+    this.introMs = this.diary || S.burnTarget === 'off' ? 0 : S.introSec * 1000;
     this.orig.r.start(1000); this.share.r.start(1000);
     this.t0 = performance.now(); this.lastTick = this.t0; this.lastVoice = this.t0;
     this.phase = 'recording';
     ui.recording(true); ui.pill('pill.rec');
-    const mode = S.ai.asrMode;
+    const mode = this.diary ? 'off' : S.ai.asrMode;
     segmenter.reset();
     if (mode === 'qwen' || mode === 'whisper') {
       if (AI.asrApi()) { segmenter.enabled = true; this.asrOn = true; } else { this.asrOn = false; ui.status(t('s.noKey'), true); }
@@ -1610,7 +1659,7 @@ const session = {
     const isAi = this.qi >= Q().length;
     ui.question(t('q.label', this.qi + 1, total) + (isAi ? t('q.aiTag') : ''), q);
     ui.hint(); ui.log();
-    if (S.speak) tts.speak(q);
+    if (S.speak && !this.diary) tts.speak(q);
   },
   onSpeech(text) {
     if (this.phase !== 'recording' && this.phase !== 'finishing') return;
@@ -1635,7 +1684,7 @@ const session = {
     if (this.paused) this.cutMs += dt; else { this.activeMs += dt; if (voiced && !tts.speaking && !inIntro) this.spokenMs += dt; }
     ui.meters(now - this.t0, this.cutMs);
     el.cutInfo.classList.toggle('paused', this.paused);
-    if (S.autoAdvanceSec > 0 && !this.thinking && !tts.speaking && this.spokenMs > 2500) {
+    if (!this.diary && S.autoAdvanceSec > 0 && !this.thinking && !tts.speaking && this.spokenMs > 2500) {
       const silent = now - this.lastVoice, need = S.autoAdvanceSec * 1000;
       if (silent > need) { this.advance('silence'); return; }
       if (silent > 1500) ui.hint(t('hint.silent', Math.ceil((need - silent) / 1000))); else ui.hint();
@@ -1651,6 +1700,7 @@ const session = {
     return a;
   },
   async advance() {
+    if (this.diary) return;
     if (this.phase !== 'recording' || this.thinking || !this.q) return;
     tts.cancel();
     this.thinking = true;
@@ -1689,7 +1739,7 @@ const session = {
     if (origMs < 1500 || !origBlob.size) { ui.status(t('s.short')); this.reset(); return; }
     const now = this.startDate;
     let title = '';
-    if (AI.ready() && this.answers.some(a => a.a)) { ui.status(t('s.title')); try { title = await AI.title(this.answers); } catch (_) {} }
+    if (!this.diary && AI.ready() && this.answers.some(a => a.a)) { ui.status(t('s.title')); try { title = await AI.title(this.answers); } catch (_) {} }
     if (!title) title = t('title.default', now.getMonth() + 1, now.getDate(), EN_MONTH[now.getMonth()].slice(0, 3));
     ui.status(t('s.cover'));
     const cover = await makeCover(title, now);
@@ -1770,7 +1820,7 @@ $('#btnCam').addEventListener('click', openCamera);
 el.btnShutter.addEventListener('click', () => {
   if (session.phase === 'recording') session.finish();
   else if (session.phase === 'countdown') session.phase = 'idle';
-  else if (!cam.running) openCamera();
+  else if (!cam.running) session.begin();
   else session.begin();
 });
 el.btnNext.addEventListener('click', () => session.advance());
@@ -1889,9 +1939,9 @@ const detail = {
       + '<input class="title-in" id="titleIn" value="' + esc(entry.title) + '" spellcheck="false">'
       + (sib ? '<div class="day-chips">' + sib.map(s => '<button class="chip' + (s.id === entry.id ? ' on' : '') + '" data-sib="' + s.id + '">' + pad(new Date(s.createdAt).getHours()) + ':' + pad(new Date(s.createdAt).getMinutes()) + ' ' + esc(s.title) + '</button>').join('') + '</div>' : '')
       + saved
-      + '<div class="player"><video id="vplay" controls playsinline preload="metadata" poster="' + (entry.poster || '') + '" src="' + urlS + '"></video>'
+      + '<div class="player"><video id="vplay" controls playsinline preload="metadata" poster="' + (entry.poster || '') + '" src="' + urlO + '"></video>'
       + '<div class="aside">'
-      + (hasShare ? '<div class="seg" id="vseg"><button data-src="' + urlS + '" class="on">' + t('d.seeShare') + '</button><button data-src="' + urlO + '">' + t('d.seeOrig') + '</button></div>' : '')
+      + (hasShare ? '<div class="seg" id="vseg"><button data-src="' + urlS + '">' + t('d.seeShare') + '</button><button data-src="' + urlO + '" class="on">' + t('d.seeOrig') + '</button></div>' : '')
       + (hasShare ? fileCard('share', entry.shareBlob, t('d.share'), fmtTime(entry.shareMs) + ' · ' + fmtBytes(entry.shareBlob.size) + '<br>' + t('d.shareSub', entry.cuts, fmtTime(entry.cutMs)), shS) : '')
       + fileCard('orig', entry.origBlob, t('d.orig'), fmtTime(entry.origMs) + ' · ' + fmtBytes(entry.origBlob.size) + ' · ' + t('d.origSub'), shO)
       + (entry.coverBlob ? fileCard('cover', entry.coverBlob, t('d.cover'), '1080×1440 · JPG', false) : '')

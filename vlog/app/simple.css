@@ -1,0 +1,46 @@
+/* Recording is the default. All optional tools open on demand. */
+:root{--bg:#f7f6f2;--card:#fff;--ink:#26312c;--ink-2:#626b65;--line:#dedfd8}
+*{animation:none!important}
+.app{max-width:760px;padding:0 24px 22px}.top{padding:22px 0 18px;border-bottom:1px solid var(--line)}
+.brand b{font-size:20px;letter-spacing:-.5px}.brand small,.top .quick,.workspace-title,.app>.foot{display:none!important}
+.brand .brand-icon{width:29px;height:29px;border-radius:8px}
+.workspace-bar{padding:15px 0 0}.nav{gap:22px}.nav button,.nav button.on{border:0;border-radius:0;padding:8px 0;background:none;box-shadow:none;text-decoration:none;font-size:14px;min-height:38px}.nav button.on{border-bottom:2px solid var(--ink);color:var(--ink)}
+main{background:none;border:0;box-shadow:none;padding:24px 0;border-radius:0}
+#view-rec.on{display:block}.panel{display:none!important}
+#view-rec .camera-column{display:block;position:static;border:0;padding:0;max-width:440px;margin:auto}
+.diary-heading{display:flex;align-items:center;gap:14px;margin-bottom:17px}.diary-heading h1{font-size:21px;font-weight:650;letter-spacing:-.5px;margin:0 auto 0 0}
+.diary-heading .text-link{font-size:12px;color:var(--ink-2);min-height:34px;text-decoration:underline;text-underline-offset:4px}
+#view-rec .frame,#view-rec.capture-step .frame,#view-rec.recording .frame{width:100%;max-width:350px;min-width:0;aspect-ratio:3/4;height:auto;margin:auto;border:1px solid var(--line);border-radius:12px;box-shadow:none}
+.idle,[data-theme=dark] .idle{background:var(--card)}.idle .camera-symbol{margin:0 auto 20px;background:none;box-shadow:none}
+.idle-title{font-size:18px;font-weight:500}.idle-copy,#btnCam,.idle p,.corner,#backPrepare,#qHint,#cutInfo{display:none!important}
+.diary-mode .qcard{display:none!important}
+.capture-dock{max-width:350px;margin:auto;padding-top:16px;gap:8px}.controls{justify-content:center}
+.controls .shutter{min-width:180px;height:50px;border-radius:8px;font-size:15px;box-shadow:none;background:#286346;border-color:#286346;color:white}
+#btnNext{min-height:48px;border:1px solid var(--line);border-radius:8px}
+#status{display:none}#status.err{display:block;font-size:12px;color:#9b3931;margin-top:12px}
+.capture-note{font-size:11px;line-height:1.7;color:var(--ink-2);text-align:center;margin:5px 0 0}
+#cameraOptions{font-size:12px;color:var(--ink-2);text-align:center}#cameraOptions summary{cursor:pointer;padding:6px;list-style:none;text-decoration:underline;text-underline-offset:4px}
+#cameraOptions .filters{display:flex;justify-content:center;margin-top:8px}#cameraOptions #btnMirror{font-size:12px}
+.recording #cameraOptions,.recording .capture-note{display:none}
+#customDialog{width:min(520px,calc(100% - 28px));max-height:88dvh;padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);box-shadow:0 12px 50px #0002}
+#customDialog::backdrop{background:#1b2b2460}
+.custom-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+.custom-head h2{margin:0;font-size:20px;font-weight:650}.custom-head button{font-size:18px;color:var(--ink)}
+#coachPrep .question-heading{display:none}.editable-questions textarea{min-height:60px;padding:10px 6px}
+.ai-compose{border-top:1px solid var(--line);margin-top:17px;padding-top:4px}.ai-compose>summary{font-size:13px;cursor:pointer;padding:14px 0;color:var(--ink-2)}
+.ai-compose .coach-fields{margin-top:8px}.ai-compose .topic-note{display:none}.ai-compose .coach-note{font-size:11px}.ai-compose .goal-label span{display:none}
+#prepareGo{width:100%;margin-top:20px}.local-note{display:none}
+#view-cal.on{gap:26px;grid-template-columns:minmax(215px,.85fr) minmax(0,1.15fr)}.cal-head h2{font-size:26px}.detail{padding-left:23px}.detail>.meta{font-size:10px}.detail .title-in{font-size:19px!important}
+.detail .player{margin-top:14px}.player video{border-radius:9px;max-height:480px}
+.export-details{font-size:12px;margin:18px 0 0;border-top:1px solid var(--line);padding-top:12px}
+.export-details summary,.feedback-section summary{font-size:12px;color:var(--ink-2);font-weight:400;cursor:pointer}
+.export-details .aside{padding-top:14px}.export-details .saved{margin-top:14px}.download-video{font-size:12px;min-height:38px;margin-top:12px;background:transparent;border:1px solid var(--line);box-shadow:none}
+.feedback-section{padding-top:12px;margin-top:16px}.feedback-body>p{font-size:11px}.old-records{grid-column:1/-1;margin:8px 0;font-size:11px}
+[data-theme=dark]{--bg:#1c201e;--card:#252a27;--ink:#f2f4ef;--ink-2:#c1c8be;--line:#4b534d}
+@media(max-width:760px){.app{padding:0 18px 20px;max-width:600px}.top{padding:16px 0 12px}.workspace-bar{padding-top:10px}main{padding:22px 0}.diary-heading{margin-bottom:14px}.diary-heading h1{font-size:20px}
+#view-rec .frame,#view-rec.capture-step .frame,#view-rec.recording .frame{width:min(100%,calc((100dvh - 305px)*.75));max-width:350px;min-width:195px}
+.capture-dock{padding-top:13px}.controls .shutter{height:48px;min-width:180px}.capture-note{font-size:10px}#view-cal.on{display:grid;grid-template-columns:minmax(0,1fr)}.detail{padding:22px 0 0}.cal{max-width:100%}#customDialog{padding:18px}.editable-questions textarea,#coachGoal{font-size:16px}}
+@media(max-width:360px){.app{padding-left:14px;padding-right:14px}.brand b{font-size:18px}.diary-heading{gap:10px}.diary-heading h1{font-size:18px}}
+
+
+.remove-question{border:0;background:none;color:var(--ink-2);font-size:20px;min-width:32px;min-height:44px;margin-top:4px}.remove-question:disabled{visibility:hidden}
