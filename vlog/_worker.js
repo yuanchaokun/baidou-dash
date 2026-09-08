@@ -122,7 +122,7 @@ async function generate(data, env) {
   const timer = setTimeout(() => controller.abort(), 25000);
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST', redirect: 'error', signal: controller.signal,
+      method: 'POST', redirect: 'manual', signal: controller.signal,
       headers: {'Content-Type': 'application/json', Authorization: `Bearer ${env.DEEPSEEK_API_KEY}`},
       body: JSON.stringify({model: env.DEEPSEEK_MODEL || 'deepseek-v4-flash', thinking: {type: 'disabled'},
         response_format: {type: 'json_object'}, stream: false, max_tokens: data.action === 'feedback' ? 1000 : 700,

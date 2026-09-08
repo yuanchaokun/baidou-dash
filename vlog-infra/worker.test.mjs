@@ -84,7 +84,7 @@ test('success uses fixed endpoint, bounded JSON output and no thinking mode', as
   assert.equal(response.headers.get('Cache-Control'), 'no-store');
   assert.equal(response.headers.has('Access-Control-Allow-Origin'), false);
   const [url, options] = get().sent; const body = JSON.parse(options.body);
-  assert.equal(url, 'https://api.deepseek.com/chat/completions'); assert.equal(options.redirect, 'error');
+  assert.equal(url, 'https://api.deepseek.com/chat/completions'); assert.equal(options.redirect, 'manual');
   assert.equal(body.model, 'deepseek-v4-flash'); assert.deepEqual(body.thinking, {type: 'disabled'});
   assert.deepEqual(body.response_format, {type: 'json_object'}); assert.equal(body.max_tokens, 700);
   assert.equal(get().calls, 1);
