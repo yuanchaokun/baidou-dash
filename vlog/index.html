@@ -1,305 +1,34 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#f3f6f4">
-<title>视频日志 · 对着镜头，说完今天 · cam.baidou.work</title>
-<meta name="description" content="在浏览器里录视频日志：问题出现在画面上，你只管回答。沉默自动剪掉、字幕和封面自动加上、视频直接存进你的文件夹。不上传，全部在本地完成。">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #f3f6f4; --bg-2: #eaf0ec; --card: #fff;
-  --line: #e1e8e4; --line-2: #edf2ef; --fill: #f6f9f7; --fill-2: #eaf0ec;
-  --ink: #1e2925; --ink-2: #5d6b65; --ink-3: #97a49e;
-  --accent: #2f6b5a; --accent-2: #3b8069; --accent-ink: #fff; --accent-soft: #e4f0ea; --accent-soft-2: #d2e6dc;
-  --hud: #a9dcc3; --red: #d64b3f;
-  --shadow: 0 1px 2px rgba(30,41,37,.04), 0 8px 28px -12px rgba(30,41,37,.14);
-  --shadow-lg: 0 40px 90px -30px rgba(30,41,37,.4);
-  --serif: "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
-  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Hiragino Sans GB", sans-serif;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #111614; --bg-2: #171d1a; --card: #1a211d;
-    --line: #27312c; --line-2: #212a25; --fill: #1f2723; --fill-2: #26302a;
-    --ink: #e8eeeb; --ink-2: #9daba4; --ink-3: #66746d;
-    --accent: #6cc3a0; --accent-2: #86d3b4; --accent-ink: #0e1a15; --accent-soft: rgba(108,195,160,.14); --accent-soft-2: rgba(108,195,160,.26);
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
-    --shadow-lg: 0 40px 100px -30px rgba(0,0,0,.9);
-    color-scheme: dark;
-  }
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; line-height: 1.6; }
-a { color: inherit; text-decoration: none; }
-.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
-
-/* 顶栏 */
-.top { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
-.brand { display: flex; align-items: center; gap: 14px; }
-.glyph {
-  width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
-  background: linear-gradient(150deg, #5aa88b, #2f6b5a); color: #fff;
-  display: grid; place-items: center; font-family: var(--serif); font-weight: 700; font-size: 20px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 18px -8px rgba(47,107,90,.6);
-}
-.brand b { font-family: var(--serif); font-size: 22px; font-weight: 500; display: block; line-height: 1.1; }
-.brand small { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: .06em; }
-.top nav { display: flex; align-items: center; gap: 22px; font-size: 13.5px; color: var(--ink-2); }
-.top nav a:hover { color: var(--ink); }
-.btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 14px; font-weight: 500; padding: 10px 18px; border-radius: 10px; transition: all .15s; white-space: nowrap; cursor: pointer; font-family: var(--sans); }
-.btn:hover { border-color: var(--ink-3); background: var(--fill); }
-.btn.solid { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.btn.solid:hover { background: var(--accent-2); border-color: var(--accent-2); }
-.btn.lg { padding: 14px 24px; font-size: 15px; border-radius: 12px; }
-.btn .arr { transition: transform .15s; }
-.btn:hover .arr { transform: translateX(3px); }
-
-/* 主视觉 */
-.hero { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.1fr); gap: 56px; align-items: center; padding: 56px 0 72px; }
-.eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .2em; color: var(--accent); text-transform: uppercase; margin-bottom: 22px; display: flex; align-items: center; gap: 12px; }
-.eyebrow::before { content: ""; width: 26px; height: 1px; background: var(--accent); }
-h1 { font-family: var(--serif); font-size: clamp(40px, 5vw, 64px); font-weight: 500; line-height: 1.18; letter-spacing: .01em; text-wrap: balance; }
-h1 em { font-style: normal; color: var(--accent); }
-.lead { font-size: 17px; color: var(--ink-2); line-height: 1.85; margin: 26px 0 34px; max-width: 34em; }
-.cta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.note { margin-top: 20px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: .04em; display: flex; gap: 14px; flex-wrap: wrap; }
-.note span::before { content: "· "; color: var(--accent); }
-
-/* 应用示意 */
-.mock { position: relative; display: grid; grid-template-columns: auto minmax(200px, 1fr); gap: 16px; align-items: stretch; padding: 24px 0 0 18px; }
-.mock-frame {
-  position: relative; height: 440px; aspect-ratio: 3/4; border-radius: 20px; overflow: hidden;
-  background: radial-gradient(ellipse at 50% 30%, #2a3a33, #0b0f0d 75%);
-  box-shadow: var(--shadow-lg), 0 0 0 1px var(--line); color: #f2f5f3;
-}
-.mock-frame .face { position: absolute; left: 50%; top: 40%; width: 200px; height: 240px; transform: translate(-50%, -50%); border-radius: 50% 50% 46% 46%; background: radial-gradient(ellipse at 45% 40%, #4a6b5e, #1f3029 70%); filter: blur(2px); opacity: .9; }
-.mock-frame .face::after { content: ""; position: absolute; left: 50%; top: 92%; width: 320px; height: 220px; transform: translateX(-50%); border-radius: 50% 50% 0 0; background: linear-gradient(#233a31, #0b0f0d); }
-.mock-frame .corner { position: absolute; width: 18px; height: 18px; border: 1.5px solid rgba(255,255,255,.45); }
-.mock-frame .tl { top: 14px; left: 14px; border-right: 0; border-bottom: 0; }
-.mock-frame .tr { top: 14px; right: 14px; border-left: 0; border-bottom: 0; }
-.mock-frame .bl { bottom: 14px; left: 14px; border-right: 0; border-top: 0; }
-.mock-frame .br { bottom: 14px; right: 14px; border-left: 0; border-top: 0; }
-.mock-frame .hud { position: absolute; top: 18px; left: 24px; right: 24px; display: flex; align-items: center; gap: 9px; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; }
-.mock-frame .hud i { width: 7px; height: 7px; border-radius: 50%; background: #e0584c; animation: blink 1.1s steps(2) infinite; }
-.mock-frame .hud span:last-child { margin-left: auto; color: var(--hud); }
-@keyframes blink { to { opacity: .25; } }
-.mock-frame .q { position: absolute; left: 0; right: 0; bottom: 0; padding: 70px 24px 26px; background: linear-gradient(transparent, rgba(0,0,0,.8)); }
-.mock-frame .q small { display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; color: var(--hud); margin-bottom: 9px; }
-.mock-frame .q p { font-family: var(--serif); font-size: 18px; line-height: 1.45; font-weight: 500; border-left: 2px solid var(--hud); padding-left: 12px; }
-.mock-frame .q .hint { margin-top: 10px; font-family: var(--mono); font-size: 10px; color: rgba(242,245,243,.5); letter-spacing: .04em; }
-.mock-panel { background: var(--card); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.mock-panel .head { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: .06em; }
-.pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(214,75,63,.4); background: rgba(214,75,63,.06); color: var(--red); border-radius: 999px; padding: 3px 10px 3px 8px; font-size: 11px; font-weight: 500; font-family: var(--sans); }
-.pill::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--red); animation: blink 1.1s steps(2) infinite; }
-.mock-log { list-style: none; border-top: 1px solid var(--line); flex: 1; }
-.mock-log li { padding: 10px 0; border-bottom: 1px solid var(--line-2); }
-.mock-log b { display: block; font-family: var(--serif); font-weight: 500; font-size: 13px; color: var(--accent); }
-.mock-log b i { font-style: normal; font-family: var(--mono); font-size: 9.5px; color: var(--ink-3); margin-right: 7px; letter-spacing: .1em; }
-.mock-log p { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; line-height: 1.6; }
-.mock-log li.cur p { color: var(--ink); }
-.mock-log li.cur p::after { content: "▍"; color: var(--accent); animation: blink 1s steps(2) infinite; }
-.mock-meters { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.mock-meters div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--fill); }
-.mock-meters small { display: block; font-family: var(--mono); font-size: 9px; letter-spacing: .12em; color: var(--ink-3); text-transform: uppercase; }
-.mock-meters b { display: block; font-family: var(--mono); font-size: 16px; font-weight: 500; margin-top: 3px; }
-.mock-meters b.g { color: var(--accent); }
-.streak { position: absolute; left: 0; top: 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-.streak small { font-size: 11px; color: var(--ink-2); font-weight: 500; }
-.streak .dots { display: grid; grid-template-rows: repeat(7, 5px); grid-auto-flow: column; grid-auto-columns: 5px; gap: 2px; }
-.streak .dots i { display: block; width: 5px; height: 5px; border-radius: 1px; background: var(--fill-2); }
-.streak .dots i.on { background: var(--accent); }
-
-/* 分区 */
-section { padding: 64px 0; border-top: 1px solid var(--line); }
-.sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 36px; }
-.sec-head h2 { font-family: var(--serif); font-size: 32px; font-weight: 500; line-height: 1.25; }
-.sec-head p { color: var(--ink-2); font-size: 15px; max-width: 30em; }
-.kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--accent); text-transform: uppercase; display: block; margin-bottom: 12px; }
-.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.step { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 26px 26px 28px; box-shadow: var(--shadow); position: relative; }
-.step .n { font-family: var(--serif); font-size: 44px; font-weight: 500; color: var(--accent); line-height: 1; margin-bottom: 18px; }
-.step h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
-.step p { color: var(--ink-2); font-size: 14px; line-height: 1.75; }
-.step code { font-family: var(--mono); font-size: 12px; background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 5px; }
-.feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.feat { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: var(--shadow); transition: transform .2s, border-color .2s; }
-.feat:hover { transform: translateY(-2px); border-color: var(--accent-soft-2); }
-.feat .ico { width: 38px; height: 38px; border-radius: 11px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-family: var(--serif); font-size: 17px; margin-bottom: 18px; }
-.feat h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-.feat p { color: var(--ink-2); font-size: 13.5px; line-height: 1.75; }
-.files { margin-top: 14px; display: flex; flex-direction: column; gap: 4px; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); }
-.files span::before { content: "▸ "; color: var(--accent); }
-
-.privacy { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 40px 44px; box-shadow: var(--shadow); }
-.privacy h2 { font-family: var(--serif); font-size: 30px; font-weight: 500; line-height: 1.3; margin-bottom: 14px; }
-.privacy p { color: var(--ink-2); font-size: 15px; line-height: 1.8; }
-.flow { display: flex; flex-direction: column; gap: 10px; }
-.flow div { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--fill); font-size: 13.5px; }
-.flow div b { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; color: var(--accent); min-width: 54px; }
-.flow div.dim { opacity: .65; }
-.faq { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 40px; }
-.faq details { border-bottom: 1px solid var(--line); padding: 16px 0; }
-.faq summary { cursor: pointer; font-weight: 600; font-size: 15px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-.faq summary::after { content: "+"; font-family: var(--mono); color: var(--ink-3); font-size: 16px; }
-.faq details[open] summary::after { content: "–"; }
-.faq details p { color: var(--ink-2); font-size: 14px; line-height: 1.8; margin-top: 10px; }
-.final { text-align: center; padding: 80px 0 90px; }
-.final h2 { font-family: var(--serif); font-size: 40px; font-weight: 500; line-height: 1.25; margin-bottom: 14px; }
-.final p { color: var(--ink-2); font-size: 16px; margin-bottom: 30px; }
-footer { border-top: 1px solid var(--line); padding: 24px 0 40px; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 13px; color: var(--ink-3); flex-wrap: wrap; }
-footer a:hover { color: var(--ink); }
-footer .mono { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; }
-
-@media (max-width: 960px) {
-  .wrap { padding: 0 20px; }
-  .hero { grid-template-columns: 1fr; gap: 40px; padding: 32px 0 56px; }
-  .mock { grid-template-columns: 1fr; }
-  .mock-frame { height: auto; width: min(100%, 360px); margin: 0 auto; }
-  .streak { display: none; }
-  .steps, .feats, .faq, .privacy { grid-template-columns: 1fr; }
-  .sec-head { flex-direction: column; align-items: flex-start; }
-  .top nav .hide { display: none; }
-}
-</style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f6f3e9"><meta name="description" content="今记，一个简单的视频日记工具。跟着问题说几句，自动整理，按天回看。无需注册，视频在本机保存。">
+<title>今记 — 把今天好好留下来</title>
+<link rel="icon" href="/assets/jinji-icon.png" type="image/png"><link rel="stylesheet" href="./landing.css">
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <a class="brand" href="/">
-      <div class="glyph">记</div>
-      <div><b>视频日志</b><small>cam.baidou.work</small></div>
-    </a>
-    <nav>
-      <a class="hide" href="#how">怎么用</a>
-      <a class="hide" href="#feats">功能</a>
-      <a class="hide" href="#faq">常见问题</a>
-      <a class="btn solid" href="/app/" data-cta>打开工作台 <span class="arr">→</span></a>
-    </nav>
-  </header>
-
-  <section class="hero" style="border-top:0">
-    <div>
-      <div class="eyebrow">Video Journal · 每天几分钟</div>
-      <h1>对着镜头，<em>说完今天。</em></h1>
-      <p class="lead">预设几个问题，它们会逐个出现在取景框里；你只管回答。说「回答完了」进下一题，沉默会被剪掉，字幕和封面自动加上，录完的视频直接存进你的文件夹——不用碰键盘，也不用点下载。</p>
-      <div class="cta">
-        <a class="btn solid lg" href="/app/" data-cta>开始今天的记录 <span class="arr">→</span></a>
-        <a class="btn lg" href="#how">看看它怎么工作</a>
-      </div>
-      <div class="note"><span>纯浏览器运行</span><span>视频不上传</span><span>电脑上用 Chrome / Edge</span></div>
-    </div>
-    <div class="mock" aria-hidden="true">
-      <div class="mock-frame">
-        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-        <div class="face"></div>
-        <div class="hud"><span>剪去 01:15</span></div>
-        <div class="q">
-          <small>问题 02 / 04</small>
-          <p>今天最让你有感触的一件事是什么？</p>
-          <div class="hint">说「回答完了」下一题 · 说「结束录制」收尾</div>
-        </div>
-      </div>
-      <div class="mock-panel">
-        <div class="head"><span>2026.09.08 周二</span><span class="pill">录制中</span></div>
-        <ol class="mock-log">
-          <li><b><i>01</i>今天过得怎么样？用三个词形容一下。</b><p>充实、有点累、但心里是踏实的。</p></li>
-          <li class="cur"><b><i>02</i>今天最让你有感触的一件事是什么？</b><p>下午窗边的那杯茶，阳光刚好落在桌角</p></li>
-        </ol>
-        <div class="mock-meters">
-          <div><small>时长</small><b>03:42</b></div>
-          <div><small>剪去沉默</small><b class="g">01:15</b></div>
-                  </div>
-      </div>
-      <div class="streak"><small>连续 12 天</small><div class="dots" id="dots"></div></div>
-    </div>
-  </section>
-
-  <section id="how">
-    <div class="sec-head">
-      <div><span class="kicker">How it works</span><h2>三步，不用碰键盘</h2></div>
-      <p>把"想记录"和"真的录下来"之间的所有琐事都自动化掉，你只需要坐下来、开口说。</p>
-    </div>
-    <div class="steps">
-      <div class="step"><div class="n">01</div><h3>写好几个问题</h3><p>「今天过得怎么样？」「最有感触的一件事？」——设置一次就好。开录后它们逐个出现在画面上，也可以让系统读出来。</p></div>
-      <div class="step"><div class="n">02</div><h3>对着镜头回答</h3><p>说完一题就说 <code>回答完了</code>，自动进下一题；说 <code>结束录制</code> 收尾。填一个国内模型的 Key，AI 还会根据你的回答追问一两句。</p></div>
-      <div class="step"><div class="n">03</div><h3>录完就是成片</h3><p>沉默自动剪掉，问题烙成字幕，开头是带日期的封面卡。原画、分享版、封面图、文字稿四个文件按日期和标题命名，直接写进你选的文件夹。</p></div>
-    </div>
-  </section>
-
-  <section id="feats">
-    <div class="sec-head">
-      <div><span class="kicker">Features</span><h2>该有的都在，多余的都没有</h2></div>
-    </div>
-    <div class="feats">
-      <div class="feat"><div class="ico">问</div><h3>问题上屏，声控翻页</h3><p>竖版 3:4 取景，问题带序号出现在画面下方。语音触发词换题，或者点画面 / 按空格。</p></div>
-      <div class="feat"><div class="ico">剪</div><h3>沉默自动剪掉</h3><p>开录前自动校准环境噪音。原画完整保留，另出一份剪掉停顿的分享版，体积小，直接发群。</p></div>
-      <div class="feat"><div class="ico">封</div><h3>字幕、片头、封面图</h3><p>分享版自带问题字幕和 2 秒日期封面卡，发到群里缩略图就是它；另生成一张 1080×1440 的封面图。</p></div>
-      <div class="feat"><div class="ico">存</div><h3>直接存进你的文件夹</h3><p>选一次文件夹，每次录完自动写入，不用点下载。文件名自动带日期和标题。</p>
-        <div class="files"><span>2026-09-08_0836_窗边的一杯茶_原画.mp4</span><span>2026-09-08_0836_窗边的一杯茶_分享版.mp4</span><span>2026-09-08_0836_窗边的一杯茶_封面.jpg</span><span>2026-09-08_0836_窗边的一杯茶_文字稿.md</span></div></div>
-      <div class="feat"><div class="ico">智</div><h3>AI 追问与起标题</h3><p>填一个 OpenAI 兼容接口（推荐阿里云百炼，一个 Key 同时做语音识别和追问）。回答被转成文字，AI 顺着你的话往下问，录完自动起标题。</p></div>
-      <div class="feat"><div class="ico">历</div><h3>日历回看，连续天数</h3><p>每一天的封面落在日历格子里，右侧回看、改标题、看文字稿。顶部的点阵记录你坚持了多久。</p></div>
-    </div>
-  </section>
-
-  <section>
-    <div class="privacy">
-      <div>
-        <span class="kicker">Local first</span>
-        <h2>视频从不离开你的电脑</h2>
-        <p>取景、滤镜、剪辑、字幕、封面、编码——全部在浏览器里完成，没有任何服务器接触你的画面。唯一出网的是语音识别和 AI 追问：把几秒的音频片段和文字发给<b>你自己填的</b>模型接口，Key 也只保存在这台电脑的浏览器里。不填 Key 也能用，只是没有转写和追问。</p>
-      </div>
-      <div class="flow">
-        <div><b>摄像头</b>取景 · 滤镜 · 美颜 · 烙字幕 → 浏览器画布</div>
-        <div><b>麦克风</b>音量判定 → 沉默处暂停分享版录制器</div>
-        <div><b>录完</b>封面图 · 起名 → 写入你选的文件夹</div>
-        <div class="dim"><b>可选</b>音频片段 → 你填的模型接口 → 文字 / 追问</div>
-      </div>
-    </div>
-  </section>
-
-  <section id="faq">
-    <div class="sec-head"><div><span class="kicker">FAQ</span><h2>常见问题</h2></div></div>
-    <div class="faq">
-      <details open><summary>需要什么浏览器？</summary><p>电脑上的 Chrome 或 Edge 最完整：滤镜录进视频、自动写入文件夹都依赖它们。Safari 可以录，但要手动「另存为」。</p></details>
-      <details><summary>手机上能用吗？</summary><p>可以打开录制，但这个工具是按电脑桌面设计的——大屏取景、右侧看实时转写更舒服。手机版之后再说。</p></details>
-      <details><summary>语音识别和 AI 追问要花多少钱？</summary><p>推荐阿里云百炼：qwen3-asr-flash 识别按音频时长计费，qwen-plus 追问按 token 计费。一天录几分钟，一个月几毛到几块钱。</p></details>
-      <details><summary>我的数据存在哪里？</summary><p>视频写进你选的文件夹；浏览器里另存一份用于日历回看（清理站点数据会丢，文件夹里的不会）。设置和 Key 存在本机 localStorage。</p></details>
-      <details><summary>不想要字幕和片头怎么办？</summary><p>设置 → 字幕与封面里可以关掉，或者只烙进分享版、保持原画干净（这是默认）。</p></details>
-      <details><summary>「回答完了」识别不到？</summary><p>先在设置里点「测试连接」确认接口通了；环境嘈杂时把阈值调高一点。识别不可用时，点画面或按空格也能换题。</p></details>
-    </div>
-  </section>
-
-  <section class="final">
-    <span class="kicker">Start today</span>
-    <h2>今天的你，值得被三分钟记下来。</h2>
-    <p>打开相机，回答三个问题，剩下的交给它。</p>
-    <a class="btn solid lg" href="/app/" data-cta>打开工作台 <span class="arr">→</span></a>
-  </section>
-
-  <footer>
-    <div><a href="https://d.baidou.work/">← 白豆工具箱</a></div>
-    <div class="mono">cam.baidou.work · 纯浏览器运行 · 不上传</div>
-  </footer>
+<a class="skip" href="#main">跳到正文</a>
+<header class="top shell"><a class="brand" href="/" aria-label="今记首页"><img src="/assets/jinji-icon.png" alt="" width="43" height="43"><b>今记<span>给自己的视频日记</span></b></a><nav aria-label="主导航"><a class="nav-link" href="#how">怎么用</a><a class="nav-link" href="#privacy">数据在哪</a><a class="nav-link" href="#faq">常见问题</a><a class="nav-cta" href="/app/" data-cta>开始记录 <span aria-hidden="true">↗</span></a></nav></header>
+<main id="main">
+<section class="hero shell" aria-labelledby="hero-title">
+<p class="eyebrow"><span aria-hidden="true">●</span> 今天的你，值得留个备份。</p>
+<h1 id="hero-title">每天几分钟，<br>把今天<span class="underline">好好留下来。</span></h1>
+<p class="lead">打开镜头，跟着几个问题说说今天。<br>今记帮你剪掉停顿、整理成片，以后按天回看。</p>
+<a class="button" href="/app/" data-cta>开始今天的记录 <span aria-hidden="true">→</span></a>
+<p class="hero-note">无需注册。视频存本机。建议电脑使用。</p>
+<figure class="workspace" aria-labelledby="preview-caption">
+<div class="workspace-top"><span><img src="/assets/jinji-icon.png" width="23" height="23" alt="">我的记录本</span><span class="demo-label">界面示意 · 非真实记录</span></div>
+<div class="workspace-grid">
+<div class="camera"><div class="camera-top"><span class="camera-status"><i></i> 镜头准备中</span><span>01 / 03</span></div><div class="camera-center"><svg viewBox="0 0 124 104" fill="none" aria-hidden="true"><rect x="15" y="31" width="77" height="54" rx="12" stroke="currentColor" stroke-width="3"/><path d="M93 48l18-10v39L93 66" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="53" cy="57" r="13" stroke="currentColor" stroke-width="3"/><path d="M41 17c4-6 19-6 24 0M47 8c3-3 10-3 13 0" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><p>这里，是今天的你。</p><small>开始后，摄像头画面会出现在这里</small></div><div class="camera-question"><span>第一个问题</span><strong>今天过得怎么样？</strong><small>说「回答完了」，进入下一题</small></div></div>
+<div class="question-panel"><div class="panel-heading"><h2>今天聊什么？</h2><span class="pencil" aria-hidden="true">✎</span></div><p class="panel-intro">不用准备得很好。从一句话开始。</p><ol class="question-list"><li class="active"><span>1</span><div><strong>今天过得怎么样？</strong><small>就从此刻的心情说起</small></div></li><li><span>2</span><div><strong>有什么想记住的小事？</strong><small>一顿饭、一个人、一个瞬间</small></div></li><li><span>3</span><div><strong>明天，想做点什么？</strong><small>给明天的自己留句话</small></div></li></ol><div class="workspace-note"><span aria-hidden="true">↳</span><p>问题可以自己改。<br>录的时候，一次只看一道。</p></div><div class="ready"><i aria-hidden="true"></i> 准备好，就可以开始了。</div></div>
 </div>
-<script>
-(function(){
-  var seed = [0,1,1,1,0,1,1, 1,1,0,1,1,1,1, 1,0,1,1,1,1,1, 1,1,1,0,1,1,1, 1,1,1,1,1,1,1, 1,1,1,1,1,1,1];
-  var html = '';
-  for (var i = 0; i < 84; i++) { var on = i < 42 ? (i % 5 === 0) : seed[i - 42]; html += '<i class="' + (on ? 'on' : '') + '"></i>'; }
-  document.getElementById('dots').innerHTML = html;
-  try {
-    if (localStorage.getItem('vlog.settings')) {
-      document.querySelectorAll('[data-cta]').forEach(function (a) { a.innerHTML = '继续记录 <span class="arr">→</span>'; });
-    }
-  } catch (e) {}
-})();
-</script>
-</body>
-</html>
+<figcaption id="preview-caption">你负责说。<span>问题提示、停顿剪辑、字幕和封面，交给今记。</span></figcaption>
+</figure>
+</section>
+<section class="how shell" id="how" aria-labelledby="how-title"><p class="section-kicker">一个很简单的流程</p><h2 id="how-title">三步。今天就留下了。</h2><div class="steps"><article><span class="step-number">1</span><div><h3>选几个问题</h3><p>用现成的，也可以自己写。录制时，问题会逐个出现在画面里。</p></div></article><article><span class="step-number">2</span><div><h3>打开镜头，慢慢说</h3><p>说「回答完了」换题。也能点画面或按空格，按自己的节奏来。</p></div></article><article><span class="step-number">3</span><div><h3>保存。以后再看</h3><p>保留完整原画，也生成剪掉停顿的分享版。在日历里找回这一天。</p></div></article></div></section>
+<section class="feature-section shell" aria-labelledby="features-title"><div class="feature-intro"><p class="section-kicker">小工具，把该做的事做好。</p><h2 id="features-title">少操心一点。<br>多留下<span class="underline">一点。</span></h2><p>不用剪片软件，不用整理一堆文件。<br>记录之外的琐事，尽量替你做好。</p><a href="/app/">打开今记，试一试 →</a></div><div class="feature-list"><article><span aria-hidden="true">✂</span><div><h3>发呆可以，停顿帮你剪。</h3><p>自动检测声音，剪去分享版中的沉默。完整原画照样保留。</p></div></article><article><span aria-hidden="true">▤</span><div><h3>字幕、封面，一起备好。</h3><p>问题字幕、日期片头和独立封面图都能自动生成，也能在设置里关闭。</p></div></article><article><span aria-hidden="true">↧</span><div><h3>按日期收好，随时回看。</h3><p>授权文件夹后自动保存，也可以手动下载。日历里能回放视频、改标题、读文字稿。</p></div></article><article><span aria-hidden="true">✳</span><div><h3>想多聊一点？可以接上 AI。</h3><p>配置自己的服务，转写回答、生成追问和标题。按需启用，由服务商计费。</p></div></article></div></section>
+<section class="privacy shell" id="privacy" aria-labelledby="privacy-title"><div class="privacy-head"><span class="privacy-stamp" aria-hidden="true">你的日常<br>你来保管</span><div><p class="section-kicker">把数据说清楚</p><h2 id="privacy-title">视频留在你这里。</h2><p>浏览器里处理，本机保存。本站不会自动上传视频。</p></div></div><div class="privacy-grid"><div><h3>本地完成的部分</h3><p>录制、滤镜、剪辑、字幕和封面都在本地处理。日历记录保存在当前浏览器，授权后也会写入你选择的文件夹。</p></div><div><h3>可能联网的部分</h3><p>启用模型服务后，音频片段和文字会发给你配置的接口。浏览器语音识别也可能联网。接口 Key 保存在本机浏览器。</p></div></div><p class="storage-note">记得保存好文件：清理站点数据会移除浏览器里的记录，已下载或保存到文件夹的文件不受影响。</p></section>
+<section class="faq-section shell" id="faq" aria-labelledby="faq-title"><p class="section-kicker">还有几件小事</p><h2 id="faq-title">开始前，你可能想问。</h2><div class="faq"><details open><summary>需要什么浏览器？手机能用吗？</summary><p>建议电脑上的 Chrome 或 Edge，以使用滤镜录制和自动写入文件夹等完整功能。手机可以打开尝试，具体取决于浏览器支持；Safari 的部分功能有限，文件可能需要手动下载。</p></details><details><summary>不用 AI，也能记录吗？</summary><p>可以。你可以编辑问题、录制视频，用点击或空格换题，结束后保存。转写、AI 追问和 AI 标题需要配置相应模型服务；使用浏览器语音识别时，也可能依赖在线服务。</p></details><details><summary>语音识别和 AI 要花钱吗？</summary><p>连接自己的模型服务后，由相应服务商按实际用量计费。具体费用以服务商当前定价为准，可先在设置里测试连接。</p></details><details><summary>「回答完了」没识别到怎么办？</summary><p>可以直接点画面或按空格换题。使用模型接口时，请在设置里测试连接，并检查麦克风、识别模式和声音阈值。</p></details><details><summary>字幕和片头可以关掉吗？</summary><p>可以。在「设置 → 字幕与封面」里关闭，或者只加在分享版里。默认保留干净的原画。</p></details></div></section>
+<section class="closing shell" aria-labelledby="closing-title"><p class="section-kicker">不必等到特别的一天。</p><h2 id="closing-title">就从<span class="underline">今天</span>开始吧。</h2><p>「今天过得怎么样？」</p><a class="button" href="/app/" data-cta>给今天留个备份 <span aria-hidden="true">→</span></a></section>
+</main><footer class="shell"><a class="footer-brand" href="/">今记<span>给自己的视频日记。</span></a><a href="https://d.baidou.work/">白豆工具箱 ↗</a><a href="#main">回到顶部 ↑</a></footer>
+</body></html>
