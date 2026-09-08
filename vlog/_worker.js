@@ -128,10 +128,10 @@ async function generate(data, env) {
         messages: [{role: 'system', content: systemPrompt(data)},
           {role: 'user', content: JSON.stringify({goal: data.goal, ...(data.action === 'feedback' ? {diaryText: data.text} : {})})}]})
     });
-    if (!response.ok) { if (response.body) await response.body.cancel(); throw new Error('Provider unavailable'); }
+    if (!response.ok) { console.warn('coach_provider_http', response.status); if (response.body) await response.body.cancel(); throw new Error('Provider unavailable'); }
     const body = JSON.parse(await readBounded(response.body, MAX_RESPONSE, controller.signal));
     const choice = body?.choices?.[0];
-    if (choice?.finish_reason !== 'stop' || typeof choice.message?.content !== 'string') throw new Error('Incomplete output');
+    if (choice?.finish_reason !== 'stop' || typeof choice.message?.content !== 'string') { console.warn('coach_provider_incomplete', choice?.finish_reason || 'missing'); throw new Error('Incomplete output'); }
     return cleanOutput(JSON.parse(choice.message.content), data);
   } catch (error) {
     if (controller.signal.aborted || ['AbortError', 'TimeoutError'].includes(error?.name)) throw new SafeError(504, 'timeout', 'AI 回复超时，请稍后再试。');
