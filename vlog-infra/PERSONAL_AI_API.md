@@ -5,7 +5,7 @@ All JSON responses use `Cache-Control: no-store`. Errors are `{ "error": { "code
 ## Availability and owner access
 
 - `GET /api/coach/status`: `{available, requiresAccessCode, transcriptionAvailable}`. Checks binding/config presence, not live provider account balance.
-- `GET /api/coach/access`, `Authorization: Bearer <owner access code>`: `{valid:true}`. Wrong code → 401. No provider call or quota consumption.
+- `GET /api/coach/access`, `Authorization: Bearer <owner access code>`: `{valid:true}`. Wrong code → 401. Terminal transcription failures return 422 with code `transcription_failed`; transient upstream failures remain retryable. No provider call or quota consumption.
 - All requests reject cross-origin browser callers. A direct caller without Origin can authenticate using the owner code.
 
 ## One contextual follow-up
@@ -28,9 +28,11 @@ Returns `{question:"朋友说的哪句话，让你轻松了？",source:"deepseek
 
 The native DashScope request uses `qwen3-asr-flash-filetrans`, `input.file_url` (singular), `parameters.enable_words:true`, `channel_id:[0]`, `enable_itn:false`, and `X-DashScope-Async: enable`. API base is `https://dashscope.aliyuncs.com/api/v1` (existing Beijing domain remains supported). Async processing latency is not promised.
 
-The provider reads `/api/transcribe/audio/<uuid>?expires=<unixSeconds>&signature=<hmac>` without the owner code. This URL is signed for exactly one temporary object, expires in an hour, and supports GET/HEAD. It cannot list the bucket. Completion/failure removes the audio. Transcription JSON is fetched only from validated `dashscope-result-*.oss-*.aliyuncs.com` hosts over HTTPS, without credentials or redirects; provider HTTP result URLs are upgraded to HTTPS. Provider task IDs and result URLs are never accepted from the browser.
+The current owner-only trial sets `ASR_UPLOAD_MODE=dashscope-temporary`. In this mode the server obtains a model-scoped upload policy, uploads the WAV directly to DashScope's private OSS temporary store, then submits an `oss://` URL with `X-DashScope-OssResourceResolve: enable`. No R2 copy of the audio is created. DashScope retains this temporary file for up to 48 hours; this API cannot delete it immediately. This is the provider's development/testing upload path. Before expanding to a public service, use a production OSS storage arrangement with an explicit retention policy. R2 still holds the private, expiring task and result cache.
 
-`DIARY_AUDIO` stores `transcribe/audio/<uuid>.wav` and `transcribe/jobs/<uuid>.json`. Job records contain a hashed token, duration, expiry, provider task ID while pending, and normalized transcript after completion. Configure bucket lifecycle deletion after one day; do not expose a public R2 bucket/domain. This is temporary processing storage, not a recording archive.
+Without that mode, the original signed-R2 audio transport is available. In that transport, the provider reads `/api/transcribe/audio/<uuid>?expires=<unixSeconds>&signature=<hmac>` without the owner code. This URL is signed for exactly one temporary object, expires in an hour, and supports GET/HEAD. It cannot list the bucket. Completion/failure removes the audio. Transcription JSON is fetched only from validated `dashscope-result-*.oss-*.aliyuncs.com` hosts over HTTPS, without credentials or redirects; provider HTTP result URLs are upgraded to HTTPS. Provider task IDs and result URLs are never accepted from the browser.
+
+`DIARY_AUDIO` stores `transcribe/audio/<uuid>.wav` and `transcribe/jobs/<uuid>.json`. Job records contain a hashed token, duration, expiry, provider task ID while pending or failed, a bounded failure reason for diagnosis, and normalized transcript after completion. Configure bucket lifecycle deletion after one day; do not expose a public R2 bucket/domain. This is temporary processing storage, not a recording archive.
 
 For a smooth private flow, a per-minute quota of 6 allows an initial generated-question request plus first-answer transcription, follow-up, and final subtitle transcription. Each can still be bounded by the existing day quotas.
 

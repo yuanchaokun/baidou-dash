@@ -31,14 +31,14 @@ window.initPersonalJournal = function (core) {
     const config = core.coach.status(), busy = session.phase !== 'idle';
     $('#personalAITitle').textContent = t('AI 陪你说', 'AI companion');
     $('#personalAIBadge').textContent = available() ? t('已开启', 'Enabled') : !config.known ? t('连接中', 'Connecting') : config.requiresAccessCode && !core.getAIAccessCode() ? t('输入访问码', 'Enter access code') : t('暂未连接', 'Unavailable');
-    $('#personalAIHelp').textContent = t('输入一次访问码，本次浏览器会话内可用。默认问题随时可以直接录。', 'Enter your code once for this browser session. The guiding questions always work.');
+    $('#personalAIHelp').textContent = t('输入一次访问码，本次浏览器会话内可用。字幕目前支持 10 分钟以内的视频。', 'Enter your code once per browser session. Captions support videos up to 10 minutes.');
     $('#personalAccessLabel').textContent = t('你的 AI 访问码', 'Your AI access code');
     $('#personalAccess').placeholder = t('粘贴访问码', 'Paste access code');
     if (document.activeElement !== $('#personalAccess')) $('#personalAccess').value = core.getAIAccessCode();
     $('#savePersonalAccess').textContent = t('启用', 'Enable');
     $('#personalCaptionsLabel').textContent = t('录完自动生成字幕', 'Create captions after recording');
     $('#personalFollowupLabel').textContent = t('第一轮后追问一次', 'Ask one follow-up after my first answer');
-    $('#personalAIPrivacy').textContent = t('开启后，语音会发送给阿里云识别，文字交给 DeepSeek 追问。临时音频处理后删除，视频留在本机。', 'When enabled, audio goes to Alibaba Cloud for transcription and text to DeepSeek for a follow-up. Temporary audio is deleted after processing; videos stay here.');
+    $('#personalAIPrivacy').textContent = t('语音交给阿里云识别，临时音频会在 48 小时内过期；文字交给 DeepSeek 追问。视频保存在本机。', 'Audio goes to Alibaba Cloud for transcription and expires from temporary storage within 48 hours. Text goes to DeepSeek for a follow-up. Videos stay on this device.');
     $('#personalCaptions').checked = S.personalCaptions !== false;
     $('#personalFollowup').checked = S.personalFollowup !== false;
     panel.querySelectorAll('input,button').forEach(n => n.disabled = busy);

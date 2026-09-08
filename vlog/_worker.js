@@ -9,6 +9,7 @@ const JOB_LIFETIME_MS = 60 * 60 * 1000;
 const MAX_TRANSCRIPT = 1024 * 1024;
 const JOB_ID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const DASHSCOPE = 'https://dashscope.aliyuncs.com/api/v1';
+const ASR_MODEL = 'qwen3-asr-flash-filetrans';
 
 class SafeError extends Error {
   constructor(status, code, message) { super(message); this.status = status; this.code = code; }
@@ -25,7 +26,8 @@ function configured(env) {
     && (!!env.COACH_ACCESS_CODE || env.COACH_PUBLIC_ENABLED === 'true');
 }
 function transcriptionConfigured(env) {
-  return !!env.COACH_ACCESS_CODE && !!env.DASHSCOPE_API_KEY && !!env.DIARY_AUDIO_SIGNING_KEY
+  return !!env.COACH_ACCESS_CODE && !!env.DASHSCOPE_API_KEY
+    && (env.ASR_UPLOAD_MODE === 'dashscope-temporary' || !!env.DIARY_AUDIO_SIGNING_KEY)
     && typeof env.DIARY_AUDIO?.put === 'function' && typeof env.DIARY_AUDIO?.get === 'function'
     && typeof env.DIARY_AUDIO?.delete === 'function' && typeof env.AI_LIMITS?.fetch === 'function';
 }
@@ -231,6 +233,38 @@ async function removeAudio(env, id) {
   // A bucket lifecycle rule also expires abandoned audio/jobs after one day.
   try { await env.DIARY_AUDIO.delete(audioKey(id)); } catch { console.warn('transcription_cleanup_deferred'); }
 }
+async function uploadToDashScope(bytes, id, env) {
+  // Owner-only trial path: provider temporary files are private, model/account-bound,
+  // expire automatically after 48 hours, and cannot be explicitly deleted through this API.
+  const policy = (await fetchProviderJSON(`${DASHSCOPE}/uploads?action=getPolicy&model=${ASR_MODEL}`, {
+    headers: {Authorization: `Bearer ${env.DASHSCOPE_API_KEY}`, 'Content-Type': 'application/json'}
+  }))?.data;
+  const fail = () => { throw new SafeError(502, 'transcription_upload_error', '语音临时上传未能完成，请稍后重试。'); };
+  let host; try { host = new URL(policy?.upload_host); } catch { return fail(); }
+  const field = (value, max) => typeof value === 'string' && value.length > 0 && value.length <= max && !/[\r\n\0]/.test(value);
+  if (host.protocol !== 'https:' || host.username || host.password || host.port || host.pathname !== '/' || host.search || host.hash
+    || !/^dashscope-file-[a-z0-9-]+\.oss-[a-z0-9-]+\.aliyuncs\.com$/.test(host.hostname)
+    || !field(policy?.upload_dir, 1500) || !/^dashscope-instant\/[A-Za-z0-9_./-]+$/.test(policy.upload_dir) || policy.upload_dir.split('/').includes('..')
+    || !field(policy?.oss_access_key_id, 256) || !field(policy?.signature, 4096) || !field(policy?.policy, 16384)
+    || policy.x_oss_object_acl !== 'private' || String(policy.x_oss_forbid_overwrite) !== 'true'
+    || !(Number(policy.expire_in_seconds) > 0) || !(Number(policy.max_file_size_mb) * 1024 * 1024 >= bytes.length)) return fail();
+  const key = `${policy.upload_dir.replace(/\/$/, '')}/${id}.wav`, form = new FormData();
+  for (const [name, value] of Object.entries({OSSAccessKeyId: policy.oss_access_key_id, Signature: policy.signature, policy: policy.policy,
+    'x-oss-object-acl': 'private', 'x-oss-forbid-overwrite': 'true', key, success_action_status: '200'})) form.append(name, value);
+  // OSS requires the actual file to be the final form field.
+  form.append('file', new Blob([bytes], {type: 'audio/wav'}), `${id}.wav`);
+  try {
+    const response = await fetch(host.href, {method: 'POST', body: form, redirect: 'manual', signal: AbortSignal.timeout(30000)});
+    const ok = response.status === 200;
+    if (response.body) await response.body.cancel();
+    if (!ok) return fail();
+  } catch (error) {
+    if (error instanceof SafeError) throw error;
+    if (['AbortError', 'TimeoutError'].includes(error?.name)) throw new SafeError(504, 'transcription_upload_timeout', '语音上传超时，请稍后重试。');
+    return fail();
+  }
+  return `oss://${key}`;
+}
 async function startTranscription(request, env) {
   if (!/^audio\/(?:wav|wave|x-wav)(?:\s*;|$)/i.test(request.headers.get('Content-Type') || '')) throw new SafeError(415, 'content_type', '请发送 WAV 音频。');
   if (Number(request.headers.get('Content-Length') || 0) > MAX_AUDIO) throw new SafeError(413, 'too_large', '音频文件太大，请缩短后再试。');
@@ -241,15 +275,21 @@ async function startTranscription(request, env) {
   await reserve(request, env);
   const id = crypto.randomUUID(), token = `${crypto.randomUUID()}${crypto.randomUUID()}`;
   const expiresAt = Date.now() + JOB_LIFETIME_MS, expires = String(Math.floor(expiresAt / 1000));
-  const audioURL = new URL(`/api/transcribe/audio/${id}`, request.url);
-  audioURL.searchParams.set('expires', expires);
-  audioURL.searchParams.set('signature', await signature(id, expires, env));
-  const job = {id, tokenHash: hex(await digest(token)), expiresAt, duration, status: 'pending'};
-  await env.DIARY_AUDIO.put(audioKey(id), bytes, {httpMetadata: {contentType: 'audio/wav'}, customMetadata: {expires}});
+  const temporary = env.ASR_UPLOAD_MODE === 'dashscope-temporary';
+  const job = {id, tokenHash: hex(await digest(token)), expiresAt, duration, status: 'pending', uploadMode: temporary ? 'dashscope-temporary' : 'r2-signed'};
   try {
+    let fileURL;
+    if (temporary) fileURL = await uploadToDashScope(bytes, id, env);
+    else {
+      const audioURL = new URL(`/api/transcribe/audio/${id}`, request.url);
+      audioURL.searchParams.set('expires', expires);
+      audioURL.searchParams.set('signature', await signature(id, expires, env));
+      await env.DIARY_AUDIO.put(audioKey(id), bytes, {httpMetadata: {contentType: 'audio/wav'}, customMetadata: {expires}});
+      fileURL = audioURL.href;
+    }
     const body = await fetchProviderJSON(`${DASHSCOPE}/services/audio/asr/transcription`, {
-      method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${env.DASHSCOPE_API_KEY}`, 'X-DashScope-Async': 'enable'},
-      body: JSON.stringify({model: 'qwen3-asr-flash-filetrans', input: {file_url: audioURL.href}, parameters: {channel_id: [0], enable_words: true, enable_itn: false}})
+      method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${env.DASHSCOPE_API_KEY}`, 'X-DashScope-Async': 'enable', ...(temporary ? {'X-DashScope-OssResourceResolve': 'enable'} : {})},
+      body: JSON.stringify({model: ASR_MODEL, input: {file_url: fileURL}, parameters: {channel_id: [0], enable_words: true, enable_itn: false}})
     });
     const output = body?.output;
     if (!/^[a-zA-Z0-9_-]{1,128}$/.test(output?.task_id || '') || !['PENDING', 'RUNNING', 'SUCCEEDED'].includes(output?.task_status)) throw new SafeError(502, 'transcription_provider_error', '语音识别未能开始，请稍后重试。');
@@ -286,11 +326,15 @@ function normalizeTranscript(payload, duration) {
   if (transcript.text.trim() && !segments.length) return bad();
   return {text: transcript.text.trim(), segments};
 }
-async function failJob(env, job) {
-  job.status = 'failed'; delete job.providerTask;
+async function failJob(env, job, reason = 'provider_terminal', providerCode = '', providerStatus = '') {
+  // Keep diagnostics only in the private, expiring job record. They contain no audio URL or transcript.
+  const safeCode = value => typeof value === 'string' && /^[A-Za-z0-9_.-]{1,100}$/.test(value) ? value : '';
+  job.status = 'failed'; job.failedAt = Date.now();
+  job.failure = {reason, code: safeCode(providerCode), status: safeCode(providerStatus)};
+  console.warn('transcription_failed', reason, job.failure.code || 'unspecified');
   await storeJob(env, job);
   await removeAudio(env, job.id);
-  throw new SafeError(502, 'transcription_failed', '这段音频未能识别，请保留原视频并重试。');
+  throw new SafeError(422, 'transcription_failed', '这段音频未能识别，请保留原视频并重试。');
 }
 async function pollTranscription(request, env) {
   const id = new URL(request.url).searchParams.get('job') || '';
@@ -306,21 +350,21 @@ async function pollTranscription(request, env) {
     throw new SafeError(410, 'job_expired', '字幕任务已过期，请重新生成。');
   }
   if (job.status === 'completed') return json({jobId: id, status: 'completed', ...job.result});
-  if (job.status === 'failed') throw new SafeError(502, 'transcription_failed', '这段音频未能识别，请保留原视频并重试。');
+  if (job.status === 'failed') throw new SafeError(422, 'transcription_failed', '这段音频未能识别，请保留原视频并重试。');
   if (job.nextPollAt > Date.now()) return json({jobId: id, status: 'pending', pollAfterMs: Math.max(1500, job.nextPollAt - Date.now())}, 202);
   job.nextPollAt = Date.now() + 1500;
   await storeJob(env, job);
   const body = await fetchProviderJSON(`${DASHSCOPE}/tasks/${encodeURIComponent(job.providerTask)}`, {headers: {Authorization: `Bearer ${env.DASHSCOPE_API_KEY}`}});
   const output = body?.output;
-  if (output?.task_id !== job.providerTask) return failJob(env, job);
+  if (output?.task_id !== job.providerTask) return failJob(env, job, 'provider_task_mismatch');
   if (['PENDING', 'RUNNING'].includes(output?.task_status)) return json({jobId: id, status: 'pending', pollAfterMs: 1500}, 202);
-  if (output?.task_status !== 'SUCCEEDED') return failJob(env, job);
+  if (output?.task_status !== 'SUCCEEDED') return failJob(env, job, 'provider_terminal', output?.code || body?.code, output?.task_status);
   try {
     const resultURL = safeResultURL(output.result?.transcription_url);
     const result = await fetchProviderJSON(resultURL, {}, MAX_TRANSCRIPT);
     job.result = normalizeTranscript(result, job.duration);
   } catch (error) {
-    if (error?.code === 'invalid_transcript') return failJob(env, job);
+    if (error?.code === 'invalid_transcript') return failJob(env, job, 'invalid_transcript');
     throw error; // A temporary download failure can be retried without re-submitting paid audio.
   }
   job.status = 'completed'; delete job.providerTask;

@@ -42,6 +42,8 @@ function poll(job, overrides = {}) {return req(null, {method: 'GET', path: `/api
 const submitted = () => Response.json({output: {task_id: TASK, task_status: 'PENDING'}});
 const completed = (result = RESULT) => Response.json({output: {task_id: TASK, task_status: 'SUCCEEDED', result: {transcription_url: result}}});
 const transcript = () => Response.json({transcripts: [{channel_id: 0, text: '今天很开心。', sentences: [{begin_time: 250, end_time: 1750, text: '今天很开心。', words: [{begin_time: 250, end_time: 600, text: '今天'}]}]}]});
+const uploadPolicy = (overrides = {}) => Response.json({data: {upload_host: 'https://dashscope-file-test.oss-cn-beijing.aliyuncs.com', upload_dir: 'dashscope-instant/test/2026-09-08/session',
+  oss_access_key_id: 'test-upload-key', signature: 'test-signature', policy: 'test-policy', x_oss_object_acl: 'private', x_oss_forbid_overwrite: 'true', expire_in_seconds: 300, max_file_size_mb: 100, ...overrides}});
 async function withFetch(replacement, fn) {
   const original = globalThis.fetch, calls = [];
   globalThis.fetch = async (url, options) => {calls.push([url, options]); return replacement(url, options, calls.length);};
@@ -84,6 +86,38 @@ test('invalid content, bounded length, malformed WAV and overlong WAV spend noth
 test('quota rejection happens before temporary upload or paid request', async () => withFetch(submitted, async calls => {
   const e = env({AI_LIMITS: {fetch: async () => new Response('', {status: 429})}});
   assert.equal((await worker.fetch(req(), e)).status, 429); assert.equal(calls.length, 0); assert.equal(e.DIARY_AUDIO.objects.size, 0);
+}));
+test('provider-local temporary upload uses private model-bound policy and file-last form without a public audio copy', async () => withFetch((url, options, n) => n === 1 ? uploadPolicy() : n === 2 ? new Response('') : submitted(), async calls => {
+  const e = env({ASR_UPLOAD_MODE: 'dashscope-temporary', DIARY_AUDIO_SIGNING_KEY: undefined}), job = await start(e);
+  assert.equal(calls[0][0], 'https://dashscope.aliyuncs.com/api/v1/uploads?action=getPolicy&model=qwen3-asr-flash-filetrans');
+  assert.equal(calls[0][1].headers.Authorization, 'Bearer test-dashscope');
+  const [uploadURL, upload] = calls[1];
+  assert.equal(uploadURL, 'https://dashscope-file-test.oss-cn-beijing.aliyuncs.com/'); assert.equal(upload.redirect, 'manual'); assert.equal(upload.headers, undefined);
+  assert.ok(upload.body instanceof FormData); const fields = Array.from(upload.body.keys()); assert.equal(fields.at(-1), 'file');
+  assert.equal(upload.body.get('x-oss-object-acl'), 'private'); assert.equal(upload.body.get('x-oss-forbid-overwrite'), 'true');
+  assert.equal(upload.body.get('file').size, wav().byteLength); assert.equal(upload.body.get('file').name, job.jobId + '.wav');
+  const model = JSON.parse(calls[2][1].body);
+  assert.equal(model.model, 'qwen3-asr-flash-filetrans'); assert.equal(model.input.file_url, 'oss://dashscope-instant/test/2026-09-08/session/' + job.jobId + '.wav');
+  assert.equal(calls[2][1].headers['X-DashScope-OssResourceResolve'], 'enable');
+  assert.equal(e.DIARY_AUDIO.objects.size, 1); assert.equal(e.DIARY_AUDIO.readJob(job.jobId).uploadMode, 'dashscope-temporary');
+  assert.ok(!JSON.stringify(e.DIARY_AUDIO.readJob(job.jobId)).includes('oss://'));
+}));
+test('provider-local upload rejects public ACL, arbitrary hosts, redirects, directory escapes and undersized policy', async () => {
+  for (const patch of [{upload_host:'http://dashscope-file-test.oss-cn-beijing.aliyuncs.com'}, {upload_host:'https://evil.example/'}, {upload_host:'https://dashscope-file-test.oss-cn-beijing.aliyuncs.com/path'},
+    {upload_host:'https://user@dashscope-file-test.oss-cn-beijing.aliyuncs.com'}, {x_oss_object_acl:'public-read'}, {x_oss_forbid_overwrite:'false'}, {upload_dir:'dashscope-instant/../escape'}, {max_file_size_mb:0.001}]) {
+    await withFetch(() => uploadPolicy(patch), async calls => {
+      const e = env({ASR_UPLOAD_MODE:'dashscope-temporary'}), response = await worker.fetch(req(),e);
+      assert.equal(response.status,502); assert.equal((await response.json()).error.code,'transcription_upload_error'); assert.equal(calls.length,1); assert.equal(e.DIARY_AUDIO.objects.size,0);
+    });
+  }
+  await withFetch((u,o,n) => n === 1 ? uploadPolicy() : new Response('',{status:302,headers:{Location:'https://evil.example/'}}), async calls => {
+    const response = await worker.fetch(req(),env({ASR_UPLOAD_MODE:'dashscope-temporary'})); assert.equal(response.status,502); assert.equal(calls.length,2); assert.equal(calls[1][1].redirect,'manual');
+  });
+});
+test('provider-local path retains input and quota bounds before acquiring an upload policy', async () => withFetch(uploadPolicy, async calls => {
+  assert.equal((await worker.fetch(req(wav(601)),env({ASR_UPLOAD_MODE:'dashscope-temporary'}))).status,413);
+  const e=env({ASR_UPLOAD_MODE:'dashscope-temporary', AI_LIMITS:{fetch:async()=>new Response('',{status:429})}});
+  assert.equal((await worker.fetch(req(),e)).status,429); assert.equal(calls.length,0);
 }));
 test('submit requests timestamped Flash, stores no access code and signs a narrowly scoped audio URL', async () => withFetch(submitted, async calls => {
   const e = env(), job = await start(e);
@@ -136,16 +170,19 @@ test('submit provider errors clean temporary audio and hide upstream details', a
     });
   }
 });
-test('failed provider job deletes audio and caches a safe failure', async () => withFetch((u, o, n) => n === 1 ? submitted() : Response.json({output: {task_id: TASK, task_status: 'FAILED', message: 'PRIVATE DETAIL'}}), async calls => {
+test('failed provider job deletes audio, preserves private diagnostics and returns a safe failure', async () => withFetch((u, o, n) => n === 1 ? submitted() : Response.json({output: {task_id: TASK, task_status: 'FAILED', code: 'FILE_403_FORBIDDEN', message: 'PRIVATE DETAIL'}}), async calls => {
   const e = env(), job = await start(e), response = await worker.fetch(poll(job), e);
-  assert.equal(response.status, 502); assert.equal((await response.json()).error.code, 'transcription_failed');
+  assert.equal(response.status, 422); assert.equal((await response.json()).error.code, 'transcription_failed');
   assert.equal(e.DIARY_AUDIO.objects.has(`transcribe/audio/${job.jobId}.wav`), false);
-  assert.equal((await worker.fetch(poll(job), e)).status, 502); assert.equal(calls.length, 2);
+  const stored = e.DIARY_AUDIO.readJob(job.jobId);
+  assert.equal(stored.providerTask, TASK); assert.deepEqual(stored.failure, {reason: 'provider_terminal', code: 'FILE_403_FORBIDDEN', status: 'FAILED'});
+  assert.ok(!JSON.stringify(stored).includes('PRIVATE DETAIL'));
+  assert.equal((await worker.fetch(poll(job), e)).status, 422); assert.equal(calls.length, 2);
 }));
 test('provider result URLs cannot target arbitrary hosts, credentials, ports or redirects', async () => {
   for (const url of ['http://127.0.0.1/private', 'https://example.com', 'https://evil.oss-cn-beijing.aliyuncs.com/file', 'https://user@dashscope-result-bj.oss-cn-beijing.aliyuncs.com/file', 'https://dashscope-result-bj.oss-cn-beijing.aliyuncs.com:8080/file']) {
     await withFetch((u, o, n) => n === 1 ? submitted() : completed(url), async calls => {
-      const e = env(), job = await start(e); assert.equal((await worker.fetch(poll(job), e)).status, 502); assert.equal(calls.length, 2);
+      const e = env(), job = await start(e); assert.equal((await worker.fetch(poll(job), e)).status, 422); assert.equal(calls.length, 2);
       assert.equal(e.DIARY_AUDIO.objects.has(`transcribe/audio/${job.jobId}.wav`), false);
     });
   }
@@ -157,7 +194,7 @@ test('provider result URLs cannot target arbitrary hosts, credentials, ports or 
 test('malformed or implausible timestamps fail closed; silence may produce empty captions', async () => {
   for (const sentences of [[{begin_time: -1, end_time: 200, text: 'bad'}], [{begin_time: 0, end_time: 9999999, text: 'bad'}], [{begin_time: 500, end_time: 100, text: 'bad'}], []]) {
     await withFetch((u, o, n) => n === 1 ? submitted() : n === 2 ? completed() : Response.json({transcripts: [{channel_id: 0, text: 'bad', sentences}]}), async () => {
-      const e = env(), job = await start(e); assert.equal((await worker.fetch(poll(job), e)).status, 502);
+      const e = env(), job = await start(e); assert.equal((await worker.fetch(poll(job), e)).status, 422);
     });
   }
   await withFetch((u, o, n) => n === 1 ? submitted() : n === 2 ? completed() : Response.json({transcripts: []}), async () => {
