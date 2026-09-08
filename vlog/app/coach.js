@@ -68,7 +68,7 @@ window.initJournalCoach = function (core) {
     advanced.innerHTML='<summary>'+txt('让 AI 帮我出题','Ask AI for questions')+'</summary>';
     Array.from(prep.children).filter(n=>!n.matches('.question-heading,#questionPreview,#coachNotice,#prepareGo,.local-note')).forEach(n=>advanced.append(n));
     $('#questionPreview').after(advanced);
-    advanced.open=aiWasOpen||!!notice;
+    advanced.open=aiWasOpen;
     $('.local-note',prep).hidden=true;
     $('#prepareGo').textContent=txt('用这些问题','Use these questions');
     const add=document.createElement('button');add.className='text-link';add.id='addQuestion';add.textContent=txt('加一个问题','Add a question');
