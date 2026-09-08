@@ -7,7 +7,7 @@ window.initJournalCoach = function (core) {
   const zh = () => core.getLang() === 'zh';
   const txt = (cn, en) => zh() ? cn : en;
   const topics = {
-    daily: {label:['日常','Everyday'], questions:[['今天有什么小事，你想留给以后的自己？','回看今天，你什么时候最像自己？','现在的你想对镜头说一句什么话？'],['What small moment do you want to remember from today?','When did you feel most like yourself today?','What would you like to say to the camera right now?']]},
+    daily: {label:['日常','Everyday'], questions:[['今天有什么小事，让你现在还记得？','那一刻，你心里在想什么？','现在回看，你想对自己说什么？'],['What small moment from today stayed with you?','What was going through your mind then?','Looking back, what would you tell yourself?']]},
     work: {label:['工作','Work'],questions:[['今天推进了什么？说说一个具体的结果。','哪里卡住了，你试过什么办法？','明天最值得先做的一小步是什么？'],['What did you move forward today? Describe one concrete result.','Where did you get stuck, and what did you try?','What is the first small step worth taking tomorrow?']]},
     investing: {label:['投资复盘','Investing'],questions:[['这次判断基于哪些事实，哪些是你的假设？','如果判断错了，你能承受的损失和退出条件是什么？','你准备记录什么证据，之后检验这次判断？'],['Which parts of your decision are facts, and which are assumptions?','If you are wrong, what loss can you accept and when would you exit?','What evidence will you record to review your judgment later?']]},
     relationships: {label:['关系','Relationships'],questions:[['最近哪次相处让你印象深刻？发生了什么？','你当时想表达什么，对方实际听到的可能是什么？','下一次见面，你想试着多说或多听什么？'],['Which recent interaction stayed with you? What happened?','What did you mean to express, and what might they have heard?','What would you like to say or listen for next time?']]},
@@ -20,7 +20,7 @@ window.initJournalCoach = function (core) {
   if (!topics[S.coach.topic]) S.coach.topic = 'daily';
   if (!styles[S.coach.style]) S.coach.style = 'gentle';
   S.coach.goal = String(S.coach.goal || '').slice(0, 600);
-  let revision = 0, generating = false, accessCode = '', api = {available:false,requiresAccessCode:false}, statusKnown = false;
+  let revision = 0, generating = false, accessCode = sessionStorage.getItem('cam.aiAccess') || '', api = {available:false,requiresAccessCode:false,transcriptionAvailable:false}, statusKnown = false;
   let notice = '', captureStep = false;
   const prep = $('#coachPrep'), view = $('#view-rec');
   session.diary = true;
@@ -88,7 +88,7 @@ window.initJournalCoach = function (core) {
     };
     $('#coachStyle').onchange = e => { if (!idle()) return; S.coach.style = e.target.value; revision++; persist(); };
     $('#coachGoal').oninput = e => { if (!idle()) return; S.coach.goal = e.target.value; revision++; persist(); };
-    $('#coachAccess').oninput = e => {accessCode=e.target.value;};
+    $('#coachAccess').oninput = e => {accessCode=e.target.value;sessionStorage.setItem('cam.aiAccess',accessCode);document.dispatchEvent(new CustomEvent('cam:coach-status'));};
     prep.querySelectorAll('[data-question]').forEach(autoHeight);
     sync();
   }
@@ -113,8 +113,11 @@ window.initJournalCoach = function (core) {
     S.questions[core.getLang()]=qs; S.coach.source='custom'; revision++;persist();$('#questionSource').textContent=sourceText();
   });
   $('#backPrepare').onclick=()=>{if(!idle())return;captureStep=false;view.classList.remove('capture-step');prep.querySelectorAll('[data-question]').forEach(autoHeight);prep.scrollIntoView({behavior:'smooth',block:'start'});$('#coachGoal').focus({preventScroll:true});};
-  async function request(body) {
+  async function request(body, options = {}) {
     const controller = new AbortController(), timer = setTimeout(()=>controller.abort(),45000);
+    const cancel = () => controller.abort();
+    options.signal?.addEventListener('abort', cancel, {once:true});
+    if(options.signal?.aborted) controller.abort();
     try {
       const response=await fetch('/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,...(api.requiresAccessCode?{accessCode}: {})}),signal:controller.signal});
       let data={}; try{data=await response.json();}catch(_){}
@@ -123,7 +126,7 @@ window.initJournalCoach = function (core) {
         throw new Error((typeof data.error?.message==='string' && data.error.message.slice(0,240))||messages[response.status]||txt('AI 服务暂时没有回应，请稍后再试。','AI service did not respond. Please try again later.'));
       }
       return data;
-    }catch(e){if(e.name==='AbortError')throw new Error(txt('AI 等待超时，请稍后再试。','The AI request timed out. Please try later.'));if(e instanceof TypeError)throw new Error(txt('网络连接失败，请稍后再试。','Network connection failed. Please try later.'));throw e;}finally{clearTimeout(timer);}
+    }catch(e){if(e.name==='AbortError')throw new Error(txt('AI 等待超时，请稍后再试。','The AI request timed out. Please try later.'));if(e instanceof TypeError)throw new Error(txt('网络连接失败，请稍后再试。','Network connection failed. Please try later.'));throw e;}finally{clearTimeout(timer);options.signal?.removeEventListener('abort',cancel);}
   }
   async function generateQuestions() {
     if(!idle()||generating)return;
@@ -182,7 +185,7 @@ window.initJournalCoach = function (core) {
     const aside=$('.player .aside',this.el),saved=$('.saved',this.el),qa=$('.qa',this.el),actions=$('.actions',this.el);
     $('.player',this.el).after(exports);
     if(aside)exports.append(aside);if(saved)exports.append(saved);if(qa)exports.append(qa);if(actions)exports.append(actions);
-    const dl=document.createElement('button');dl.className='btn download-video';dl.dataset.dl='orig';dl.textContent=txt('下载视频','Download video');$('.player',this.el).after(dl);
+    const dl=document.createElement('button');dl.className='btn download-video';dl.dataset.dl=entry.shareBlob?.size?'share':'orig';dl.textContent=txt('下载视频','Download video');$('.player',this.el).after(dl);
 
     const section=document.createElement('details');section.className='feedback-section';
     const qaText=(entry.qa||[]).filter(x=>typeof x.a==='string'&&x.a.trim()).map(x=>x.q+'\n'+x.a).join('\n\n');
@@ -191,7 +194,7 @@ window.initJournalCoach = function (core) {
     this.el.append(section);
     const status=$('.feedback-status',section),draftInput=$('#feedbackDraft',section),generate=$('#generateFeedback',section),save=$('#saveFeedbackDraft',section);
     async function update(fields){const fresh=await DB.tx('entries','readonly',st=>st.get(entry.id));if(!fresh)throw new Error(txt('记录已不存在。','This entry no longer exists.'));await DB.put({...fresh,...fields});Object.assign(entry,fields);core.invalidateEntries();}
-    $('#feedbackAccess',section).oninput=e=>{accessCode=e.target.value;$('#coachAccess').value=accessCode;};
+    $('#feedbackAccess',section).oninput=e=>{core.coach.setAccessCode(e.target.value);document.dispatchEvent(new CustomEvent('cam:coach-status'));};
     $('#showFeedbackAccess',section).onclick=e=>{const input=$('#feedbackAccess',section);input.type=input.type==='password'?'text':'password';e.target.textContent=input.type==='password'?txt('显示','Show'):txt('隐藏','Hide');};
     save.onclick=async()=>{save.disabled=true;try{await update({feedbackDraft:draftInput.value});status.textContent=txt('文字日记已保存在当前浏览器，没有发送给 AI。','Written reflection saved in this browser; nothing was sent to AI.');}catch(e){status.textContent=txt('保存失败：','Could not save: ')+e.message;}finally{save.disabled=false;}};
     generate.onclick=async()=>{
@@ -218,9 +221,15 @@ window.initJournalCoach = function (core) {
     oldSite.innerHTML = '<a href="https://cam.baidou.work/app/">旧站记录 ↗</a><span>新域名不会自动同步旧记录，可到旧站下载。</span>';
     oldSite.querySelector('span').remove();$('#view-cal').append(oldSite);
   }
-  render();
-  (async()=>{
+  async function refreshStatus() {
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
-    try{const r=await fetch('/api/coach/status',{signal:controller.signal,cache:'no-store'});if(!r.ok)throw new Error('status');const data=await r.json();api={available:data.available===true,requiresAccessCode:data.requiresAccessCode===true};}catch(_){api={available:false,requiresAccessCode:false};}finally{clearTimeout(timer);statusKnown=true;$('#coachService').textContent=statusText();$('.access-wrap',prep).hidden=!api.requiresAccessCode;document.querySelectorAll('.feedback-access').forEach(e=>{e.hidden=!api.requiresAccessCode;});}
-  })();
+    try{const r=await fetch('/api/coach/status',{signal:controller.signal,cache:'no-store'});if(!r.ok)throw new Error('status');const data=await r.json();api={available:data.available===true,requiresAccessCode:data.requiresAccessCode===true,transcriptionAvailable:data.transcriptionAvailable===true};}catch(_){api={available:false,requiresAccessCode:false,transcriptionAvailable:false};}finally{clearTimeout(timer);statusKnown=true;$('#coachService').textContent=statusText();$('.access-wrap',prep).hidden=!api.requiresAccessCode;document.querySelectorAll('.feedback-access').forEach(e=>{e.hidden=!api.requiresAccessCode;});document.dispatchEvent(new CustomEvent('cam:coach-status'));}
+    return api;
+  }
+  core.coach={request,refreshStatus,status:()=>({...api,known:statusKnown}),getAccessCode:()=>accessCode,setAccessCode:value=>{accessCode=String(value).slice(0,256);sessionStorage.setItem('cam.aiAccess',accessCode);if($('#coachAccess'))$('#coachAccess').value=accessCode;}};
+  render();
+  window.initExpressionCraft(core);
+  window.initPersonalJournal(core);
+  window.initJournalCaptions(core);
+  void refreshStatus();
 };

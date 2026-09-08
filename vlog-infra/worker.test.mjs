@@ -47,7 +47,7 @@ test('status accurately fails closed without key, policy or service binding', as
     assert.equal(response.status, 200); assert.equal((await response.json()).available, false);
   }
   const response = await worker.fetch(request(null, {path: '/api/coach/status', method: 'GET'}), environment({COACH_ACCESS_CODE: 'access-placeholder'}));
-  assert.deepEqual(await response.json(), {available: true, requiresAccessCode: true});
+  assert.deepEqual(await response.json(), {available: true, requiresAccessCode: true, transcriptionAvailable: false});
 });
 test('no key or public opt-in never calls provider', async () => withProvider(async get => {
   for (const patch of [{DEEPSEEK_API_KEY: undefined}, {COACH_PUBLIC_ENABLED: undefined}, {AI_LIMITS: undefined}]) assert.equal((await worker.fetch(request(), environment(patch))).status, 503);
