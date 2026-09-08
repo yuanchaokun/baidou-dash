@@ -117,6 +117,7 @@ function cleanOutput(payload, data) {
   return {feedback: {summary: f.summary.trim(), observations: f.observations.map(x => x.trim()), nextStep: f.nextStep.trim()}, source: 'deepseek'};
 }
 async function generate(data, env) {
+  let stage = 'fetch';
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 25000);
   try {
@@ -129,11 +130,14 @@ async function generate(data, env) {
           {role: 'user', content: JSON.stringify({goal: data.goal, ...(data.action === 'feedback' ? {diaryText: data.text} : {})})}]})
     });
     if (!response.ok) { console.warn('coach_provider_http', response.status); if (response.body) await response.body.cancel(); throw new Error('Provider unavailable'); }
+    stage = 'read_json';
     const body = JSON.parse(await readBounded(response.body, MAX_RESPONSE, controller.signal));
     const choice = body?.choices?.[0];
     if (choice?.finish_reason !== 'stop' || typeof choice.message?.content !== 'string') { console.warn('coach_provider_incomplete', choice?.finish_reason || 'missing'); throw new Error('Incomplete output'); }
+    stage = 'validate';
     return cleanOutput(JSON.parse(choice.message.content), data);
   } catch (error) {
+    console.warn('coach_failure', stage, error?.name || 'Error');
     if (controller.signal.aborted || ['AbortError', 'TimeoutError'].includes(error?.name)) throw new SafeError(504, 'timeout', 'AI 回复超时，请稍后再试。');
     throw new SafeError(502, 'provider_error', 'AI 暂时没有生成可用内容，请稍后再试。');
   } finally { clearTimeout(timer); }
