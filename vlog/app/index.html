@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#f3f6f4" id="themeColor">
 <title>今记 · 视频日记</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
+
 <style>
 :root {
   --bg: #f3f6f4;
@@ -415,6 +413,7 @@ input[type=range] { accent-color: var(--accent); width: 150px; }
 </style>
 <link rel="stylesheet" href="./studio.css">
 <link rel="stylesheet" href="./basecamp.css">
+<link rel="stylesheet" href="./plain.css">
 <link rel="icon" type="image/png" href="/assets/jinji-icon.png">
 <link rel="apple-touch-icon" href="/assets/jinji-icon.png">
 </head>
@@ -434,7 +433,7 @@ input[type=range] { accent-color: var(--accent); width: 150px; }
       <button class="btn" id="btnSettings"><span data-i18n="nav.settings">设置</span></button>
     </div>
   </header>
-  <div class="workspace-bar"><div class="workspace-title"><span class="eyebrow"></span><h1><span class="zh">今天，聊点什么？</span><span class="en">What’s on your mind today?</span></h1><p class="workspace-description"><span class="zh">几个问题，一段视频。说完，今天就记下了。</span><span class="en">A few questions. One video. Your day, recorded.</span></p></div>
+  <div class="workspace-bar"><div class="workspace-title"><span class="eyebrow"></span><h1><span class="zh">录一段，看看自己。</span><span class="en">Record. Look back. Know yourself.</span></h1><p class="workspace-description"><span class="zh">选一个话题，面对镜头说说，再回头看看。</span><span class="en">Choose a topic, talk on camera, then look back.</span></p></div>
   <nav class="nav" aria-label="工作区">
     <button data-view="rec" class="on"><span class="ico">录</span><span data-i18n="nav.rec">录制</span></button>
     <button data-view="cal"><span class="ico">历</span><span data-i18n="nav.cal">日历</span></button>
@@ -443,7 +442,7 @@ input[type=range] { accent-color: var(--accent); width: 150px; }
   <main>
     <!-- 录制 -->
     <section id="view-rec" class="view on">
-      <div class="camera-column"><div class="frame" id="frame">
+      <div class="camera-column"><button class="text-link back-prepare" id="backPrepare">← 返回选题</button><div class="frame" id="frame">
         <canvas id="cv" width="1080" height="1440"></canvas>
         <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
         <div class="hud">
@@ -463,14 +462,14 @@ input[type=range] { accent-color: var(--accent); width: 150px; }
           <div>
             <div class="camera-symbol" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><rect x="10" y="19" width="44" height="32" rx="9"/><path d="m21 19 4-7h14l4 7"/><circle cx="32" cy="35" r="9"/></svg></div><h2 class="idle-title"><span class="zh">准备好就开聊。</span><span class="en">Ready when you are.</span></h2><div class="idle-copy"><span class="zh">先看看画面，再按红色按钮录制。</span><span class="en">Check the frame, then press the red button.</span></div>
             <button id="btnCam" data-i18n="idle.btn">开启相机</button>
-            <p data-i18n="idle.sub">竖版 3:4 · 只存在这台电脑</p>
+            <p data-i18n="idle.sub">竖版 3:4 · 视频保存在当前浏览器</p>
           </div>
         </div>
       </div>
 
       <div class="capture-dock">        <div class="controls">
           <button class="ghost" id="btnMirror" data-i18n="btn.mirror">镜像</button>
-          <button aria-label="开始或结束录制" class="shutter" id="btnShutter" data-i18n-title="btn.shutter"><i></i></button>
+          <button aria-label="开始或结束录制" class="shutter" id="btnShutter" data-i18n-title="btn.shutter"><i></i><span id="shutterLabel">开启相机</span></button>
           <button class="ghost" id="btnNext" disabled data-i18n="btn.next">下一题</button>
         </div>
         <div class="filters" id="filters"></div>
@@ -481,8 +480,7 @@ input[type=range] { accent-color: var(--accent); width: 150px; }
           <span id="todayLabel"></span>
           <span class="pill" id="pill"></span>
         </div>
-        <div class="journal-heading"><span class="eyebrow">TODAY’S JOURNAL</span><h2><span class="zh">今天的问题</span><span class="en">Today’s questions</span></h2><p><span class="zh">按自己的节奏来。想到什么，就说什么。</span><span class="en">Go at your own pace. Say what comes to mind.</span></p></div>
-        <div class="prompt-preview"><ol id="questionPreview"></ol><button class="edit-prompts" id="editPrompts"><span class="zh">编辑问题</span><span class="en">Edit questions</span></button></div>
+        <div id="coachPrep"></div><div class="journal-heading"><span class="eyebrow">TODAY’S JOURNAL</span><h2><span class="zh">今天的问题</span><span class="en">Today’s questions</span></h2><p><span class="zh">按自己的节奏来。想到什么，就说什么。</span><span class="en">Go at your own pace. Say what comes to mind.</span></p></div>
         <ol class="log" id="log" aria-live="polite"></ol>
         <div class="meters">
           <div class="m"><small data-i18n="m.dur">时长</small><b id="mTc">00:00</b></div>
@@ -510,7 +508,7 @@ input[type=range] { accent-color: var(--accent); width: 150px; }
       <div class="detail" id="detail"></div>
     </section>
   </main>
-  <footer class="foot"><span id="sideUsage"></span><a href="https://d.baidou.work/" data-i18n="back">← 白豆工具箱</a></footer>
+  <footer class="foot"><span id="sideUsage"></span><a href="/">今记 · 视频日志</a></footer>
 </div>
 
 <!-- 设置 -->
@@ -736,6 +734,7 @@ input[type=range] { accent-color: var(--accent); width: 150px; }
   </div>
 </div>
 
+<script src="./coach.js"></script>
 <script>
 (function () {
 'use strict';
@@ -762,12 +761,12 @@ const setPath = (o, p, v) => { const ks = p.split('.'); const last = ks.pop(); c
 /* ---------- 文案 ---------- */
 const I18N = {
   zh: {
-    brand: '今记', 'nav.rec': '录制', 'nav.cal': '日历', 'nav.settings': '设置', back: '← 白豆工具箱',
-    'idle.btn': '开启相机', 'idle.sub': '竖版 3:4 · 只存在这台电脑',
+    brand: '今记', 'nav.rec': '录制', 'nav.cal': '回看', 'nav.settings': '设置', back: '← 首页',
+    'idle.btn': '开启相机', 'idle.sub': '竖版 3:4 · 视频保存在当前浏览器',
     'pill.idle': '待机', 'pill.preview': '预览', 'pill.count': '倒数', 'pill.rec': '录制中', 'pill.finish': '整理中',
     'm.dur': '时长', 'm.cut': '剪去沉默', 'm.seg': '段 / 阈值', cut: '剪去 {0}',
     'btn.mirror': '镜像', 'btn.next': '下一题', 'btn.shutter': '开始或结束录制',
-    'log.empty': '开录后，问题和你说的话会按顺序出现在这里。<br>说「回答完了」进入下一题。', 'log.none': '（没有识别到文字）', pending: ' 识别中…', thinking: ' · 在想下一个问题',
+    'log.empty': '录制时逐题回答。点「下一题」继续，点「结束录制」保存。语音识别可在设置中配置。', 'log.none': '（没有识别到文字）', pending: ' 识别中…', thinking: ' · 在想下一个问题',
     'q.frame': '取景', 'q.frameHint': '看看光线和构图，选个滤镜', 'q.ready': '准备', 'q.readyHint': '找好角度，倒数结束就开始',
     'q.intro': '片头', 'q.introHint': '封面卡正在录入，先别说话', 'q.label': '问题 {0} / {1}', 'q.aiTag': ' · AI 追问', 'q.aiWait': '问题 {0} · AI',
     'q.finishing': '整理中', 'q.finishingHint': '正在收尾，别关页面',
@@ -817,12 +816,12 @@ const I18N = {
     'ai.user': '今天是 {0}。\n已问与回答：\n{1}\n\n请给出下一个问题。', 'ai.titleSys': '根据一段视频日志的问答，起一个不超过 12 个字的中文标题，具体、有画面感、不用引号，只输出标题。', 'ai.unheard': '（没听清 / 未转写）', 'ai.q': '问：', 'ai.a': '答：', 'ai.ping': '用四个字回复：连接成功'
   },
   en: {
-    brand: 'Jinji', 'nav.rec': 'Record', 'nav.cal': 'Calendar', 'nav.settings': 'Settings', back: '← Baidou tools',
-    'idle.btn': 'Open camera', 'idle.sub': 'Portrait 3:4 · stays on this computer',
+    brand: 'Jinji', 'nav.rec': 'Record', 'nav.cal': 'Look back', 'nav.settings': 'Settings', back: '← Home',
+    'idle.btn': 'Open camera', 'idle.sub': 'Portrait 3:4 · saved in this browser',
     'pill.idle': 'Idle', 'pill.preview': 'Preview', 'pill.count': 'Countdown', 'pill.rec': 'Recording', 'pill.finish': 'Finishing',
     'm.dur': 'Duration', 'm.cut': 'Silence cut', 'm.seg': 'Seg / thr', cut: 'cut {0}',
     'btn.mirror': 'Mirror', 'btn.next': 'Next', 'btn.shutter': 'Start or finish recording',
-    'log.empty': 'Once recording, questions and what you say appear here in order.<br>Say “I’m done” to move to the next question.', 'log.none': '(no speech recognized)', pending: ' transcribing…', thinking: ' · thinking of the next one',
+    'log.empty': 'Answer one question at a time. Tap Next question to continue, or Stop recording to save. Speech recognition is optional in Settings.', 'log.none': '(no speech recognized)', pending: ' transcribing…', thinking: ' · thinking of the next one',
     'q.frame': 'Framing', 'q.frameHint': 'Check the light and framing, pick a filter', 'q.ready': 'Get set', 'q.readyHint': 'Find your angle — recording starts after the countdown',
     'q.intro': 'Title card', 'q.introHint': 'Recording the cover card — hold on a second', 'q.label': 'Question {0} / {1}', 'q.aiTag': ' · AI follow-up', 'q.aiWait': 'Question {0} · AI',
     'q.finishing': 'Wrapping up', 'q.finishingHint': 'Finishing — keep this page open',
@@ -901,7 +900,7 @@ const DEFAULTS = {
 const PRESETS = {
   qwen: { baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus', asrMode: 'qwen', asrModel: 'qwen3-asr-flash', label: 'ai.p.qwen' },
   silicon: { baseUrl: 'https://api.siliconflow.cn/v1', model: 'deepseek-ai/DeepSeek-V3', asrMode: 'whisper', asrModel: 'FunAudioLLM/SenseVoiceSmall', label: 'ai.p.silicon' },
-  deepseek: { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat', asrMode: 'browser', asrModel: '', label: 'DeepSeek' },
+  deepseek: { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-v4-flash', asrMode: 'browser', asrModel: '', label: 'DeepSeek Flash' },
   openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini', asrMode: 'whisper', asrModel: 'whisper-1', label: 'OpenAI' }
 };
 let S = loadSettings();
@@ -1147,7 +1146,7 @@ const audio = {
   ctx: null, an: null, buf: null, proc: null, db: -100, sr: 48000,
   init(stream) {
     const AC = window.AudioContext || window.webkitAudioContext;
-    this.ctx = new AC(); this.sr = this.ctx.sampleRate;
+    if (!this.ctx || this.ctx.state === 'closed') this.ctx = new AC(); this.sr = this.ctx.sampleRate;
     const src = this.ctx.createMediaStreamSource(stream);
     this.an = this.ctx.createAnalyser(); this.an.fftSize = 1024; this.an.smoothingTimeConstant = 0;
     src.connect(this.an);
@@ -1395,6 +1394,7 @@ const session = {
 
   async begin() {
     if (this.phase !== 'idle') return;
+    if (!window.MediaRecorder || typeof cv.captureStream !== 'function') { ui.status(LANG === 'zh' ? '当前浏览器不支持网页录制，请使用最新版 Safari 或 Chrome。' : 'Recording is not supported here. Try an up-to-date Safari or Chrome.', true); return; }
     if (FS.ok && FS.handle) await FS.permitted(true);
     if (!cam.running) { await openCamera(); if (!cam.running) return; }
     this.phase = 'countdown';
@@ -1423,6 +1423,7 @@ const session = {
       this.orig = makeRecorder(cv, S.origMbps, this.mime);
       this.share = makeRecorder(shareCv, S.shareMbps, this.mime);
     } catch (e) { ui.status(t('s.recFail', e.message), true); this.phase = 'idle'; return; }
+    this.coachContext = S.coach ? {topic:S.coach.topic,style:S.coach.style,goal:S.coach.goal} : null;
     this.qs = Q().slice(); this.qi = 0; this.answers = []; this.aiCount = 0; this.q = ''; this.transcript = '';
     this.activeMs = 0; this.cutMs = 0; this.cuts = 0; this.spokenMs = 0; this.paused = false; this.poster = null; this.thinking = false;
     this.startDate = new Date();
@@ -1541,6 +1542,7 @@ const session = {
       id: 'v' + now.getTime(), date: isoDate(now), createdAt: now.getTime(), title, ext, mime: origBlob.type, lang: LANG,
       poster: cover.thumb, coverBlob: cover.blob, origBlob, shareBlob, origMs: Math.round(origMs), shareMs: Math.round(this.activeMs),
       cutMs: Math.round(this.cutMs), cuts: this.cuts, thr: this.thr, savedTo: '', files: [],
+      coach: this.coachContext || null,
       qa: this.answers.map(a => ({ q: a.q, a: a.a, start: Math.round(a.start), end: Math.round(a.end) }))
     };
     let extra = '';
@@ -1597,11 +1599,15 @@ async function openCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { ui.status(t('s.noMedia'), true); return; }
   ui.status(t('s.opening'));
   try {
+    // Unlock Web Audio during the explicit camera button gesture (iOS).
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC && (!audio.ctx || audio.ctx.state === 'closed')) audio.ctx = new AC();
+    if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume().catch(() => {});
     await startCamera();
     ui.idleMode(false); ui.pill('pill.preview');
     ui.status(t('s.preview') + (FILTER_OK ? '' : t('s.noFilter')));
     ui.question(t('q.frame'), t('q.frameHint'));
-  } catch (e) { ui.status(t('s.camFail', e.name === 'NotAllowedError' ? t('s.denied') : e.message), true); }
+  } catch (e) { if (!cam.running) audio.close(); ui.status(t('s.camFail', e.name === 'NotAllowedError' ? t('s.denied') : e.message), true); }
 }
 
 $('#btnCam').addEventListener('click', openCamera);
@@ -1625,6 +1631,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && ses
 /* ---------- 视图切换 ---------- */
 const views = { cur: 'rec' };
 function showView(v) {
+  if (session.phase !== 'idle' && v !== 'rec') { ui.status(LANG === 'zh' ? '请先结束录制，再回看。' : 'Finish recording before looking back.', true); return; }
   views.cur = v;
   $$('.nav [data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v));
   $$('.view').forEach(s => s.classList.toggle('on', s.id === 'view-' + v));
@@ -1799,7 +1806,7 @@ function onSettingInput(e) {
   let v;
   if (node.type === 'checkbox') v = node.checked;
   else if (node.type === 'range') v = parseFloat(node.value);
-  else if (k === 'questions') { v = node.value.split('\n').map(s => s.trim()).filter(Boolean); if (!v.length) return; S.questions[LANG] = v; saveSettings(); return; }
+  else if (k === 'questions') { if (session.phase !== 'idle') { node.value = Q().join('\n'); return; } v = node.value.split('\n').map(s => s.trim()).filter(Boolean); if (!v.length) return; S.questions[LANG] = v; saveSettings(); return; }
   else v = node.value.trim();
   setPath(S, k, v); saveSettings();
   if (node.type === 'range') node.nextElementSibling.textContent = rangeLabel(k, v);
@@ -1876,7 +1883,7 @@ ui.question(t('q.frame'), t('q.frameHint')); ui.pill('pill.idle'); ui.meters(0, 
 ui.status(!window.MediaRecorder ? t('s.noRecorder') : !window.isSecureContext ? t('s.insecure') : t('s.noCam'), !window.MediaRecorder || !window.isSecureContext);
 FS.load().then(() => { storageUsage().then(x => { $('#sideUsage').textContent = x; }); });
 renderStreak();
-if (!localStorage.getItem('vlog.welcomeDismissed')) openWelcome();
+// The three-step guide is inline; camera permission is only requested by a click.
 /* Keep keyboard focus inside the currently open dialog. */
 [settingsModal, welcomeModal].forEach(modal => {
   let previousFocus = null;
@@ -1898,26 +1905,10 @@ if (!localStorage.getItem('vlog.welcomeDismissed')) openWelcome();
   if (modal.classList.contains('on')) update();
 });
 
-/* Presentation only: reuse the existing question settings and recording controls. */
-(() => {
-  function renderPreview() {
-    const list = document.getElementById('questionPreview');
-    list.replaceChildren(...Q().map((question, index) => {
-      const item = document.createElement('li');
-      const number = document.createElement('span');
-      number.textContent = String(index + 1).padStart(2, '0');
-      const text = document.createElement('p');
-      text.textContent = question;
-      item.append(number, text);
-      return item;
-    }));
-    document.getElementById('btnShutter').setAttribute('aria-label', t('btn.shutter'));
-  }
-  document.getElementById('editPrompts').addEventListener('click', () => openSettings('q'));
-  new MutationObserver(renderPreview).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
-  document.getElementById('settingsModal').addEventListener('input', renderPreview);
-  renderPreview();
-})();
+window.initJournalCoach({ S, Q, saveSettings, session, DB, detail, ui, cam, audio,
+  getLang: () => LANG, openSettings, showView,
+  invalidateEntries: () => { entriesCache = null; },
+});
 
 })();
 </script>
