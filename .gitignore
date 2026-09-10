@@ -1,2 +1,4 @@
 meetings/records.ndjson
 meetings/records.manifest.json
+**/.wrangler/
+**/.dev.vars

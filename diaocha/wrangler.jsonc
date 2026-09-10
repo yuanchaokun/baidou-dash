@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/wrangler.json",
+  "name": "baidou-diaocha",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-08",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "none"
+  },
+  "routes": [
+    { "pattern": "diaocha.baidou.work", "custom_domain": true }
+  ],
+  "kv_namespaces": [
+    { "binding": "DIAOCHA", "id": "23572bd07a024df8a10751b202876ec0" }
+  ],
+  "observability": { "enabled": true }
+}
