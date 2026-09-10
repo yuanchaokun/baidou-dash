@@ -69,6 +69,24 @@ async function handleApi(request, env, path) {
 
   if (path === '/api/verify' && method === 'POST') return json({ ok: true });
 
+  // 云端草稿：只有一份，边填边覆盖，防止手机端浏览器清掉本地存储
+  if (path === '/api/draft') {
+    if (method === 'GET') {
+      const raw = await env.DIAOCHA.get('draft');
+      return new Response(raw || 'null', { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
+    }
+    if (method === 'PUT') {
+      const body = await readJson(request);
+      if (!body || typeof body.answers !== 'object') return fail(400, 'invalid_body', '需要 answers。');
+      const updatedAt = Number(body.updatedAt) || Date.now();
+      const draft = { answers: body.answers, updatedAt, savedAt: new Date().toISOString(), device: String(body.device || '').slice(0, 80) };
+      await env.DIAOCHA.put('draft', JSON.stringify(draft));
+      return json({ ok: true, updatedAt });
+    }
+    if (method === 'DELETE') { await env.DIAOCHA.delete('draft'); return json({ ok: true }); }
+    return fail(405, 'method_not_allowed', '不支持的方法。');
+  }
+
   if (path === '/api/submissions' && method === 'GET') {
     const items = [];
     let cursor;

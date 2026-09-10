@@ -18,6 +18,7 @@
 - 接口：
   - `GET /api/status`
   - `POST /api/verify`
+  - `GET / PUT / DELETE /api/draft` 云端草稿（单份，key `draft`；前端设了访问码后边填边同步，打开页面时若云端更新则提示恢复）
   - `GET /api/submissions` 列表
   - `POST /api/submissions` 提交 `{answers, markdown, meta}`
   - `GET /api/submissions/:id.json` / `:id.md` / `latest.md`

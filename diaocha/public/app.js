@@ -21,19 +21,61 @@
   };
 
   // ---------- state ----------
+  const UPDATED_KEY = 'diaocha:draft:updatedAt';
   let answers = loadDraft();
   let pos = Math.min(Number(localStorage.getItem(POS_KEY) || 0), RESULT);
   let saveTimer = null;
+  let cloudTimer = null;
+  let cloudDirty = false;
 
   function loadDraft() {
     try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}') || {}; } catch { return {}; }
   }
+  const hhmm = () => new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   function saveDraft() {
     clearTimeout(saveTimer);
+    const now = Date.now();
+    localStorage.setItem(UPDATED_KEY, String(now));
     saveTimer = setTimeout(() => {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(answers));
-      setStatus('已自动保存 · ' + new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
+      setStatus('已存本机 · ' + hhmm() + (code() ? ' · 云端同步中…' : ' · 设访问码后可同步云端'));
     }, 250);
+    cloudDirty = true;
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(pushCloud, 1500);
+  }
+  async function pushCloud() {
+    if (!code() || !cloudDirty) return;
+    const updatedAt = Number(localStorage.getItem(UPDATED_KEY)) || Date.now();
+    try {
+      await api('/draft', { method: 'PUT', keepalive: true, body: JSON.stringify({ answers, updatedAt, device: navigator.userAgent.slice(0, 80) }) });
+      cloudDirty = false;
+      setStatus('已存本机并同步云端 · ' + hhmm());
+    } catch (e) { setStatus('云端同步失败：' + e.message + '（本机草稿仍在）'); }
+  }
+  // 离开页面前尽量把最后一笔推上去
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && cloudDirty) pushCloud(); });
+  window.addEventListener('pagehide', () => { if (cloudDirty) pushCloud(); });
+
+  async function pullCloud() {
+    if (!code()) return;
+    try {
+      const d = await api('/draft');
+      if (!d || !d.answers) return;
+      const localAt = Number(localStorage.getItem(UPDATED_KEY)) || 0;
+      const localCount = Object.keys(answers).length;
+      const cloudCount = Object.keys(d.answers).length;
+      if (d.updatedAt <= localAt || JSON.stringify(d.answers) === JSON.stringify(answers)) return;
+      const when = new Date(d.updatedAt).toLocaleString('zh-CN');
+      if (localCount === 0 || confirm(`云端有一份更新的草稿（${when}，${cloudCount} 项；本机 ${localCount} 项）。用云端草稿覆盖本机？`)) {
+        answers = d.answers;
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(answers));
+        localStorage.setItem(UPDATED_KEY, String(d.updatedAt));
+        cloudDirty = false;
+        renderSection(pos); refreshProgress();
+        setStatus('已从云端恢复草稿 · ' + when);
+      }
+    } catch (e) { setStatus('读取云端草稿失败：' + e.message); }
   }
   function set(id, value) {
     if (value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length)) delete answers[id];
@@ -485,14 +527,22 @@
     localStorage.setItem(CODE_KEY, v);
     const st = $('#code-status');
     st.className = 'hint'; st.textContent = '验证中…';
-    try { await api('/verify', { method: 'POST', body: '{}' }); st.className = 'hint ok'; st.textContent = '访问码正确'; }
-    catch (e) { st.className = 'hint bad'; st.textContent = e.message; }
+    try {
+      await api('/verify', { method: 'POST', body: '{}' });
+      st.className = 'hint ok'; st.textContent = '访问码正确，草稿将自动同步到云端';
+      await pullCloud();
+      if (Object.keys(answers).length) { cloudDirty = true; await pushCloud(); }
+    } catch (e) { st.className = 'hint bad'; st.textContent = e.message; }
   });
-  $('#btn-clear-draft').addEventListener('click', () => {
-    if (!confirm('清空这台设备上的所有草稿答案？')) return;
-    answers = {}; localStorage.removeItem(DRAFT_KEY); $('#dlg-settings').close(); go(0); setStatus('草稿已清空');
+  $('#btn-clear-draft').addEventListener('click', async () => {
+    if (!confirm('清空所有草稿答案？（本机和云端都会清掉，已提交的历史记录不受影响）')) return;
+    answers = {}; localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(UPDATED_KEY); cloudDirty = false;
+    if (code()) { try { await api('/draft', { method: 'DELETE' }); } catch {} }
+    $('#dlg-settings').close(); go(0); setStatus('草稿已清空');
   });
 
   buildChips();
   go(pos);
+  if (code()) pullCloud();
+  else if (!Object.keys(answers).length) setStatus('提示：先在右上角 ⚙︎ 填访问码，草稿会边填边同步到云端');
 })();
