@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>白豆 · 债务台账与模拟器</title>
+<title>台账</title>
 <style>
   :root { --bg:#f6f5f1; --card:#fff; --ink:#1c1c1a; --muted:#6b6a64; --line:#e6e4dc; --accent:#1f5eff; --red:#c8321e; --amber:#b7791f; --green:#1e7f4f; --blue:#2a5bd7; --purple:#6b4bd6; --grey:#8a8880; }
   * { box-sizing:border-box; }
@@ -16,7 +16,8 @@
   nav { display:flex; gap:4px; overflow-x:auto; }
   nav button { flex:1; border:0; background:transparent; padding:8px 6px; font-size:14px; color:var(--muted); border-bottom:2px solid transparent; white-space:nowrap; }
   nav button.on { color:var(--ink); border-color:var(--ink); font-weight:600; }
-  main { max-width:960px; margin:0 auto; padding:14px 14px 90px; }
+  main { max-width:960px; margin:0 auto; padding:14px 14px 90px; display:none; }
+  body.ready main { display:block; }
   section[data-tab] { display:none; } section.on { display:block; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; }
   .card h2 { font-size:15px; margin:0 0 8px; font-weight:600; }
@@ -67,7 +68,7 @@
 </head>
 <body>
 <header><div class="hd">
-  <h1>白豆 · 债务台账 <small id="saved"></small></h1>
+  <h1>台账 <small id="saved"></small></h1>
   <nav>
     <button data-go="now" class="on">现状</button>
     <button data-go="rate">利率</button>
@@ -88,12 +89,12 @@
   <div class="card">
     <h2>为什么会走到这里 <span>2026 年 1–10 月固定月供 vs 收入</span></h2>
     <div id="chartWhy"></div>
-    <p class="muted">2025 年 12 月把 13.1 万旧债换成 12 期短贷，月供 12,661。当时到手只有 6,800，月供是收入的 186%；5 月涨薪到 10,766 后仍是 118%。缺口只能靠再借——4 月起每月一笔，利率从 7.2% 涨到 14.4%。这不是消费问题，是期限选错了。</p>
+    <p class="muted" data-text="why"></p>
   </div>
   <div class="card">
     <h2>钱花在哪 <span>11 个完整月的月均 · 已剔除公司代垫、代收代付、自己互转、退款</span></h2>
     <table id="spend"></table>
-    <p class="muted">吃喝含聚餐和旅行时的吃住，约 60 元/天；加电影、门票、脱口秀等娱乐约 10 元/天。不含房租的全部个人消费 5,385/月 ≈ 177 元/天。饭钱不是问题，转账、订阅、打车、话费才有余地。</p>
+    <p class="muted" data-text="spend"></p>
   </div>
   <div class="card">
     <h2>债务明细 <span>按利率从高到低 · 红标 ≥ 14.4%</span></h2>
@@ -117,9 +118,9 @@
     <h2>平台说的"日息""费率"，真实年化是多少</h2>
     <table>
       <tr><th>平台怎么写</th><th class="n">真实年化</th><th>说明</th></tr>
-      <tr><td>日息 0.02%</td><td class="n">7.3%</td><td>借呗、度小满大额给你的档</td></tr>
-      <tr><td>日息 0.025%</td><td class="n">9.1%</td><td>微粒贷 1 万、2 万那两笔</td></tr>
-      <tr><td>日息 0.04%</td><td class="n">14.6%</td><td>微粒贷 5 千、度小满 7–9 月新借</td></tr>
+      <tr><td>日息 0.02%</td><td class="n">7.3%</td><td>大额消费贷常见档</td></tr>
+      <tr><td>日息 0.025%</td><td class="n">9.1%</td><td></td></tr>
+      <tr><td>日息 0.04%</td><td class="n">14.6%</td><td>小额、新客之后的常见档</td></tr>
       <tr><td>日息 0.05%</td><td class="n">18.25%</td><td>信用卡最低还款、美团月付逾期</td></tr>
       <tr><td>分期"费率" 0.5%/期</td><td class="n">≈ 10.9%</td><td>费按全额本金算，但本金在减少，真实利率约名义的 1.8 倍</td></tr>
       <tr><td>分期"费率" 0.75%/期</td><td class="n">≈ 16.2%</td><td>京东白条、信用卡账单分期常见档</td></tr>
@@ -128,10 +129,10 @@
   <div class="card">
     <h2>算一笔：借多少、多久、多少利率</h2>
     <div class="grid">
-      <div><label class="f">金额（元）</label><input type="number" id="cAmt" value="131000"></div>
+      <div><label class="f">金额（元）</label><input type="number" id="cAmt" value="100000"></div>
       <div><label class="f">年化利率（%）</label><input type="number" id="cApr" value="7.2" step="0.1"></div>
       <div><label class="f">期数（月）</label><input type="number" id="cN" value="12"></div>
-      <div><label class="f">到手月收入（元）</label><input type="number" id="cInc" value="10766"></div>
+      <div><label class="f">到手月收入（元）</label><input type="number" id="cInc" value="10000"></div>
     </div>
     <div class="grid" id="calcOut" style="margin-top:10px"></div>
     <p class="muted" id="calcNote"></p>
@@ -157,7 +158,7 @@
   </div>
   <div class="card">
     <h2>提前还款的直觉</h2>
-    <p>提前还 1 万块 14.4% 的贷款，每月省 120 元利息；提前还 1 万块 7.2% 的，省 60。所以余钱先砸利率最高的那几笔（度小满 5k/4k/2k、微粒贷 5k，合计约 1.46 万）。但在 12 月之前不要提前还任何东西——那三个月的到期额已经是 6.6 万，先保证不新借。</p>
+    <p data-text="prepay"></p>
   </div>
 </section>
 
@@ -184,7 +185,7 @@
 
 <dialog id="codeDlg">
   <h3 style="margin:0 0 8px;font-size:16px">访问码</h3>
-  <p class="muted">和自我调查一样的访问码。数据存在你自己的 Cloudflare KV 里。</p>
+  <p class="muted">需要访问码。</p>
   <input type="text" id="codeIn" placeholder="访问码" autocomplete="off">
   <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" id="codeOk">进入</button></div>
   <p class="muted" id="codeErr" style="color:var(--red)"></p>
@@ -199,7 +200,9 @@ const fmt2 = n => (Math.round(n*100)/100).toLocaleString('zh-CN',{minimumFractio
 const addM = (ym, k) => { let [y,m]=ym.split('-').map(Number); m+=k; while(m>12){m-=12;y++;} while(m<1){m+=12;y--;} return `${y}-${String(m).padStart(2,'0')}`; };
 const short = ym => ym.slice(2).replace('-','/');
 const toast = t => { const el=$('#toast'); el.textContent=t; el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),1800); };
-const COLORS = { '度小满':'#2a5bd7', '借呗':'#6b4bd6', '微粒贷':'#b7791f', '京东白条':'#c8321e', '信用卡/月付':'#8a8880' };
+const PALETTE = ['#2a5bd7','#6b4bd6','#b7791f','#c8321e','#8a8880','#1e7f4f','#d4a017'];
+let COLORS = {}; // 按数据里的分组顺序着色
+function buildColors(loans){ COLORS={}; let i=0; for (const l of loans) if (!(l.group in COLORS)) COLORS[l.group]=PALETTE[i++%PALETTE.length]; }
 
 // ---------- 数据 ----------
 const CODE_KEY = 'diaocha:code';
@@ -211,8 +214,8 @@ async function load() {
   const r = await api('/api/finance');
   if (r.status === 401) return askCode('访问码不正确');
   const d = await r.json();
-  if (!d) { $('#saved').textContent = '云端还没有数据'; return; }
-  DATA = d; renderAll(); $('#saved').textContent = '云端 ' + (d.savedAt||'').replace('T',' ').slice(5,16);
+  if (!d) { $('#saved').textContent = '云端还没有数据'; document.body.classList.add('ready'); return; }
+  DATA = d; buildColors(d.loans); document.body.classList.add('ready'); document.querySelectorAll('[data-text]').forEach(el=>el.textContent=(d.settings.text||{})[el.dataset.text]||''); renderAll(); $('#saved').textContent = '云端 ' + (d.savedAt||'').replace('T',' ').slice(5,16);
 }
 let saveT;
 function save() {
@@ -367,7 +370,7 @@ function renderNow() {
     `<tr><th>合计</th><th></th><th></th><th class="n">${fmt(total)}</th><th class="n">${fmt(monthlyInt)}</th></tr>`;
 }
 function renderRate() {
-  const rates = [ [7.2,'借呗 / 度小满大额'], [9,'微粒贷 1 万、2 万'], [14.4,'新借的小额'], [18.25,'信用卡最低还款 / 月付'] ];
+  const rates = [ [7.2,''], [9,''], [14.4,''], [18.25,'信用卡最低还款 / 月付'] ];
   $('#rateCards').innerHTML = rates.map(([r,n])=>`<div class="stat ${r>=14?'red':r>=9?'amber':''}"><b>${fmt(10000*r/100/12)} 元/月</b><span>${r}% · ${n}<br>一年 ${fmt(10000*r/100)} 元</span></div>`).join('');
   const live = DATA.loans.filter(l=>l.balance>0.005);
   const byG = {}; for (const l of live) { const g=l.group; byG[g]=(byG[g]||0)+monthlyInterest(l); }
