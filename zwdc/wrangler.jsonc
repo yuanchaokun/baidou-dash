@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/wrangler.json",
+  "name": "baidou-zwdc",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-08",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "none"
+  },
+  "routes": [
+    { "pattern": "zwdc.baidou.work", "custom_domain": true }
+  ],
+  "kv_namespaces": [
+    { "binding": "DIAOCHA", "id": "0a17a0b38366488299473c3b1a4f5bde" }
+  ],
+  "observability": { "enabled": true }
+}
