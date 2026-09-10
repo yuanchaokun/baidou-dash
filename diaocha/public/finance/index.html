@@ -346,8 +346,8 @@ function renderNow() {
   $('#kpi').innerHTML = `
     <div class="stat"><b>${(total/10000).toFixed(1)} 万</b><span>剩余本金 · ${live.length} 项</span></div>
     <div class="stat red"><b>${(q4/10000).toFixed(1)} 万</b><span>未来 3 个月要还（${short(S.start)}–${short(addM(S.start,2))}）</span></div>
-    <div class="stat"><b>${fmt(S.income)}</b><span>每月到手工资</span></div>
-    <div class="stat amber"><b>+${fmt(S.income - S.living)}</b><span>工资 − 生活 ${fmt(S.living)}</span></div>
+    <div class="stat"><b>${fmt(S.income)}</b><span>每月到手工资${S.bonusQuarterly?` · 另有季度奖 ${fmt(S.bonusQuarterly)}（折 ${fmt(S.bonusQuarterly/3)}/月）`:''}</span></div>
+    <div class="stat amber"><b>+${fmt(S.income + (S.bonusQuarterly||0)/3 - S.living)}</b><span>工资${S.bonusQuarterly?'+季奖折月':''} − 生活 ${fmt(S.living)}</span></div>
     <div class="stat"><b>${fmt(monthlyInt)}</b><span>当前每月利息</span></div>
     <div class="stat red"><b>${fmt(hot)}</b><span>利率 ≥14.4% 的本金</span></div>
     <div class="stat green"><b>${base.freeAt ? short(base.freeAt) : '—'}</b><span>只按期还的清零月</span></div>`;
