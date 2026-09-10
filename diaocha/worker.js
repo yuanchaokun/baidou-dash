@@ -87,6 +87,22 @@ async function handleApi(request, env, path) {
     return fail(405, 'method_not_allowed', '不支持的方法。');
   }
 
+  // 财务台账：/finance/ 页面的数据（负债、还款记录、设置），只有一份
+  if (path === '/api/finance') {
+    if (method === 'GET') {
+      const raw = await env.DIAOCHA.get('finance');
+      return new Response(raw || 'null', { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
+    }
+    if (method === 'PUT') {
+      const body = await readJson(request);
+      if (!body || !Array.isArray(body.loans)) return fail(400, 'invalid_body', '需要 loans。');
+      const rec = { ...body, savedAt: new Date().toISOString() };
+      await env.DIAOCHA.put('finance', JSON.stringify(rec));
+      return json({ ok: true, savedAt: rec.savedAt });
+    }
+    return fail(405, 'method_not_allowed', '不支持的方法。');
+  }
+
   if (path === '/api/submissions' && method === 'GET') {
     const items = [];
     let cursor;

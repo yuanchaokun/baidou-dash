@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>白豆 · 债务台账与模拟器</title>
+<style>
+  :root { --bg:#f6f5f1; --card:#fff; --ink:#1c1c1a; --muted:#6b6a64; --line:#e6e4dc; --accent:#1f5eff; --red:#c8321e; --amber:#b7791f; --green:#1e7f4f; --blue:#2a5bd7; --purple:#6b4bd6; --grey:#8a8880; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing:antialiased; }
+  header { position:sticky; top:0; z-index:5; background:rgba(246,245,241,.94); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .hd { max-width:960px; margin:0 auto; padding:10px 14px 0; }
+  .hd h1 { font-size:17px; margin:0 0 6px; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+  .hd h1 small { font-weight:400; color:var(--muted); font-size:12px; }
+  nav { display:flex; gap:4px; overflow-x:auto; }
+  nav button { flex:1; border:0; background:transparent; padding:8px 6px; font-size:14px; color:var(--muted); border-bottom:2px solid transparent; white-space:nowrap; }
+  nav button.on { color:var(--ink); border-color:var(--ink); font-weight:600; }
+  main { max-width:960px; margin:0 auto; padding:14px 14px 90px; }
+  section[data-tab] { display:none; } section.on { display:block; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; }
+  .card h2 { font-size:15px; margin:0 0 8px; font-weight:600; }
+  .card h2 span { color:var(--muted); font-weight:400; font-size:12px; margin-left:6px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
+  .stat { padding:10px 12px; border-radius:10px; background:#faf9f5; border:1px solid var(--line); }
+  .stat b { display:block; font-size:22px; font-weight:600; letter-spacing:-.02em; }
+  .stat span { color:var(--muted); font-size:12px; }
+  .stat.red b { color:var(--red); } .stat.amber b { color:var(--amber); } .stat.green b { color:var(--green); }
+  p { margin:6px 0; } .muted { color:var(--muted); font-size:13px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { padding:7px 6px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  th { color:var(--muted); font-weight:500; font-size:12px; }
+  td.n,th.n { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .tag { display:inline-block; font-size:11px; padding:1px 6px; border-radius:99px; background:#eee; color:#444; margin-left:4px; }
+  .tag.hot { background:#fbe4e0; color:var(--red); }
+  svg { width:100%; height:auto; display:block; }
+  .legend { display:flex; flex-wrap:wrap; gap:8px 14px; font-size:12px; color:var(--muted); margin-top:6px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  label.f { display:block; font-size:13px; color:var(--muted); margin:8px 0 2px; }
+  input[type=number], input[type=text], select { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-size:15px; background:#fff; }
+  input[type=range] { width:100%; }
+  .btn { border:1px solid var(--ink); background:var(--ink); color:#fff; padding:8px 14px; border-radius:8px; font-size:14px; cursor:pointer; }
+  .btn.ghost { background:transparent; color:var(--ink); }
+  .btn.sm { padding:5px 10px; font-size:13px; }
+  .btn:disabled { opacity:.5; }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .seg button { border:0; background:#fff; padding:7px 12px; font-size:13px; color:var(--muted); }
+  .seg button.on { background:var(--ink); color:#fff; }
+  .bar { height:10px; background:#ecebe5; border-radius:99px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--green); }
+  .loan { display:flex; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }
+  .loan:last-child { border-bottom:0; }
+  .loan .l b { font-weight:600; } .loan .l div { font-size:12px; color:var(--muted); }
+  .loan .r { text-align:right; white-space:nowrap; }
+  .loan .r b { font-size:16px; }
+  .toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:8px 14px; border-radius:8px; font-size:13px; opacity:0; transition:.2s; pointer-events:none; }
+  .toast.on { opacity:1; }
+  dialog { border:0; border-radius:12px; padding:18px; width:min(92vw,380px); }
+  dialog::backdrop { background:rgba(0,0,0,.4); }
+  .callout { border-left:3px solid var(--red); background:#fdf3f1; padding:10px 12px; border-radius:6px; font-size:14px; }
+  .callout.amber { border-color:var(--amber); background:#fbf5e8; } .callout.green { border-color:var(--green); background:#eef7f1; } .callout.blue { border-color:var(--blue); background:#eef2fc; }
+  .cmp { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .cmp .stat b { font-size:17px; }
+  @media (max-width:520px) { .cmp { grid-template-columns:1fr; } .stat b { font-size:20px; } }
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <h1>白豆 · 债务台账 <small id="saved"></small></h1>
+  <nav>
+    <button data-go="now" class="on">现状</button>
+    <button data-go="rate">利率</button>
+    <button data-go="sim">模拟</button>
+    <button data-go="log">打卡</button>
+  </nav>
+</div></header>
+
+<main>
+<!-- ============ 现状 ============ -->
+<section data-tab="now" class="on">
+  <div class="grid" id="kpi"></div>
+  <div class="card" style="margin-top:12px">
+    <h2>每月要还多少 <span>元 · 按平台 · 虚线 = 到手工资</span></h2>
+    <div id="chartDue"></div>
+    <div class="legend" id="legendDue"></div>
+  </div>
+  <div class="card">
+    <h2>为什么会走到这里 <span>2026 年 1–10 月固定月供 vs 收入</span></h2>
+    <div id="chartWhy"></div>
+    <p class="muted">2025 年 12 月把 13.1 万旧债换成 12 期短贷，月供 12,661。当时到手只有 6,800，月供是收入的 186%；5 月涨薪到 10,766 后仍是 118%。缺口只能靠再借——4 月起每月一笔，利率从 7.2% 涨到 14.4%。这不是消费问题，是期限选错了。</p>
+  </div>
+  <div class="card">
+    <h2>钱花在哪 <span>11 个完整月的月均 · 已剔除公司代垫、代收代付、自己互转、退款</span></h2>
+    <table id="spend"></table>
+    <p class="muted">吃喝含聚餐和旅行时的吃住，约 60 元/天；加电影、门票、脱口秀等娱乐约 10 元/天。不含房租的全部个人消费 5,385/月 ≈ 177 元/天。饭钱不是问题，转账、订阅、打车、话费才有余地。</p>
+  </div>
+  <div class="card">
+    <h2>债务明细 <span>按利率从高到低 · 红标 ≥ 14.4%</span></h2>
+    <table id="loansTable"></table>
+  </div>
+</section>
+
+<!-- ============ 利率 ============ -->
+<section data-tab="rate">
+  <div class="card">
+    <h2>利率翻译成钱：每借 1 万，每月要付多少利息</h2>
+    <div class="grid" id="rateCards"></div>
+    <p class="muted">利息 = 本金 × 年利率 ÷ 12。年化 14.4% 就是每 1 万每月 120 元，是 7.2% 的两倍。信用卡最低还款和月付通常按日息 0.05% 计，年化 18.25%。</p>
+  </div>
+  <div class="card">
+    <h2>你现在每月在"烧"多少利息</h2>
+    <div class="grid" id="burn"></div>
+    <p class="muted">按当前剩余本金 × 各自利率算。大额贷款都到尾期，所以总利息不高——你的问题是每月要还的本金太集中，不是利息。</p>
+  </div>
+  <div class="card">
+    <h2>平台说的"日息""费率"，真实年化是多少</h2>
+    <table>
+      <tr><th>平台怎么写</th><th class="n">真实年化</th><th>说明</th></tr>
+      <tr><td>日息 0.02%</td><td class="n">7.3%</td><td>借呗、度小满大额给你的档</td></tr>
+      <tr><td>日息 0.025%</td><td class="n">9.1%</td><td>微粒贷 1 万、2 万那两笔</td></tr>
+      <tr><td>日息 0.04%</td><td class="n">14.6%</td><td>微粒贷 5 千、度小满 7–9 月新借</td></tr>
+      <tr><td>日息 0.05%</td><td class="n">18.25%</td><td>信用卡最低还款、美团月付逾期</td></tr>
+      <tr><td>分期"费率" 0.5%/期</td><td class="n">≈ 10.9%</td><td>费按全额本金算，但本金在减少，真实利率约名义的 1.8 倍</td></tr>
+      <tr><td>分期"费率" 0.75%/期</td><td class="n">≈ 16.2%</td><td>京东白条、信用卡账单分期常见档</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h2>算一笔：借多少、多久、多少利率</h2>
+    <div class="grid">
+      <div><label class="f">金额（元）</label><input type="number" id="cAmt" value="131000"></div>
+      <div><label class="f">年化利率（%）</label><input type="number" id="cApr" value="7.2" step="0.1"></div>
+      <div><label class="f">期数（月）</label><input type="number" id="cN" value="12"></div>
+      <div><label class="f">到手月收入（元）</label><input type="number" id="cInc" value="10766"></div>
+    </div>
+    <div class="grid" id="calcOut" style="margin-top:10px"></div>
+    <p class="muted" id="calcNote"></p>
+  </div>
+</section>
+
+<!-- ============ 模拟 ============ -->
+<section data-tab="sim">
+  <div class="card">
+    <h2>还款模拟 <span>从下个月开始，三种策略并排</span></h2>
+    <label class="f">每月额外还款（在月供之外）：<b id="extraV">0</b> 元</label>
+    <input type="range" id="extra" min="0" max="8000" step="250" value="0">
+    <label class="f">一次性大额还款（元）与月份</label>
+    <div class="row"><input type="number" id="lumpAmt" value="0" style="flex:1"><input type="text" id="lumpM" value="2026-10" style="flex:1" placeholder="2026-10"></div>
+    <p class="muted">额外的钱怎么分：<b>雪崩</b> = 先还利率最高的；<b>雪球</b> = 先还余额最小的（清掉的笔数多，心理反馈快）；<b>只按期还</b> = 什么都不额外做。三种策略的"每月总支出"相同，区别只在分配。京东白条的分期费已经算进每期金额里，提前还不省钱，所以模拟里把它放最后，单独列"贷款清零"月。</p>
+    <div class="cmp" id="simCmp"></div>
+    <div style="margin-top:10px" id="chartSim"></div>
+    <div class="legend"><span><i style="background:var(--grey)"></i>只按期还</span><span><i style="background:var(--red)"></i>雪崩（高利率先）</span><span><i style="background:var(--green)"></i>雪球（小额先）</span></div>
+  </div>
+  <div class="card">
+    <h2>雪崩策略下每月要付多少</h2>
+    <table id="simTable"></table>
+  </div>
+  <div class="card">
+    <h2>提前还款的直觉</h2>
+    <p>提前还 1 万块 14.4% 的贷款，每月省 120 元利息；提前还 1 万块 7.2% 的，省 60。所以余钱先砸利率最高的那几笔（度小满 5k/4k/2k、微粒贷 5k，合计约 1.46 万）。但在 12 月之前不要提前还任何东西——那三个月的到期额已经是 6.6 万，先保证不新借。</p>
+  </div>
+</section>
+
+<!-- ============ 打卡 ============ -->
+<section data-tab="log">
+  <div class="card">
+    <h2>已还进度</h2>
+    <div class="row" style="justify-content:space-between"><span class="muted">起点 <b id="origTotal"></b></span><span class="muted">现在 <b id="curTotal"></b></span></div>
+    <div class="bar" style="margin:8px 0"><i id="progBar" style="width:0"></i></div>
+    <p class="muted" id="progText"></p>
+  </div>
+  <div class="card">
+    <h2>每一笔 <span>点"还了这期"会按月供扣掉本金部分；"提前还"输入金额</span></h2>
+    <div class="row" style="justify-content:space-between;margin-bottom:6px"><span class="muted">当前账期 <b id="curMonth"></b></span><button class="btn ghost sm" id="nextMonth">本月都还完了 → 进入下个月</button></div>
+    <div id="loanList"></div>
+  </div>
+  <div class="card">
+    <h2>还款记录</h2>
+    <table id="payLog"></table>
+    <div class="row" style="margin-top:10px"><button class="btn ghost sm" id="undo">撤销最后一笔</button><button class="btn ghost sm" id="exportJson">导出 JSON</button></div>
+  </div>
+</section>
+</main>
+
+<dialog id="codeDlg">
+  <h3 style="margin:0 0 8px;font-size:16px">访问码</h3>
+  <p class="muted">和自我调查一样的访问码。数据存在你自己的 Cloudflare KV 里。</p>
+  <input type="text" id="codeIn" placeholder="访问码" autocomplete="off">
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" id="codeOk">进入</button></div>
+  <p class="muted" id="codeErr" style="color:var(--red)"></p>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- 工具 ----------
+const $ = s => document.querySelector(s);
+const fmt = n => Math.round(n).toLocaleString('zh-CN');
+const fmt2 = n => (Math.round(n*100)/100).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const addM = (ym, k) => { let [y,m]=ym.split('-').map(Number); m+=k; while(m>12){m-=12;y++;} while(m<1){m+=12;y--;} return `${y}-${String(m).padStart(2,'0')}`; };
+const short = ym => ym.slice(2).replace('-','/');
+const toast = t => { const el=$('#toast'); el.textContent=t; el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),1800); };
+const COLORS = { '度小满':'#2a5bd7', '借呗':'#6b4bd6', '微粒贷':'#b7791f', '京东白条':'#c8321e', '信用卡/月付':'#8a8880' };
+
+// ---------- 数据 ----------
+const CODE_KEY = 'diaocha:code';
+let DATA = null;           // {settings, loans, payments, origin}
+let code = localStorage.getItem(CODE_KEY) || '';
+const api = (path, opt={}) => fetch(path, { ...opt, headers: { 'Content-Type':'application/json', 'X-Access-Code': code, ...(opt.headers||{}) } });
+
+async function load() {
+  const r = await api('/api/finance');
+  if (r.status === 401) return askCode('访问码不正确');
+  const d = await r.json();
+  if (!d) { $('#saved').textContent = '云端还没有数据'; return; }
+  DATA = d; renderAll(); $('#saved').textContent = '云端 ' + (d.savedAt||'').replace('T',' ').slice(5,16);
+}
+let saveT;
+function save() {
+  clearTimeout(saveT);
+  saveT = setTimeout(async () => {
+    DATA.updatedAt = Date.now();
+    const r = await api('/api/finance', { method:'PUT', body: JSON.stringify(DATA) });
+    if (r.ok) { const j = await r.json(); $('#saved').textContent = '云端 ' + j.savedAt.replace('T',' ').slice(5,16); toast('已保存到云端'); }
+    else toast('保存失败');
+  }, 400);
+}
+function askCode(err) {
+  $('#codeErr').textContent = err || '';
+  $('#codeIn').value = code;
+  $('#codeDlg').showModal();
+}
+$('#codeOk').onclick = async () => {
+  code = $('#codeIn').value.trim(); if (!code) return;
+  const r = await api('/api/verify', { method:'POST', body:'{}' });
+  if (!r.ok) { $('#codeErr').textContent = '访问码不正确'; return; }
+  localStorage.setItem(CODE_KEY, code); $('#codeDlg').close(); load();
+};
+
+// ---------- 导航 ----------
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x===b));
+  document.querySelectorAll('section[data-tab]').forEach(s => s.classList.toggle('on', s.dataset.tab===b.dataset.go));
+  location.hash = b.dataset.go;
+});
+if (location.hash) { const b = document.querySelector(`nav button[data-go="${location.hash.slice(1)}"]`); b && b.click(); }
+
+// ---------- 贷款数学 ----------
+// loan: {id,name,group,apr,balance,pmt,dueDay,kind:'amort'|'sched'|'card', schedule:{ym:amt}, note}
+function monthlyInterest(l) { return l.kind==='card' ? 0 : l.balance * (l.apr||0) / 12; } // 信用卡/月付按到期全额还，不计滚息
+function scheduledPayment(l, ym) {
+  if (l.balance <= 0.005) return 0;
+  if (l.kind === 'sched') return Math.min(l.schedule?.[ym] || 0, l.balance);
+  const due = l.balance + monthlyInterest(l);
+  return Math.min(l.kind === 'card' ? due : l.pmt, due);
+}
+// 模拟：strategy 'none'|'avalanche'|'snowball'
+function simulate(loans, opts) {
+  const { extra=0, lump={}, strategy='none', start, maxMonths=60 } = opts;
+  const ls = loans.map(l => ({ ...l, paidInterest:0 }));
+  const rows = []; let totalInterest = 0, freeAt = null, freeExSched = null;
+  for (let i=0; i<maxMonths; i++) {
+    const ym = addM(start, i);
+    let paid = 0, interest = 0;
+    for (const l of ls) {
+      if (l.balance <= 0.005) continue;
+      const it = monthlyInterest(l); const p = scheduledPayment(l, ym);
+      if (l.kind === 'sched') { l.balance -= p; } else { l.balance = l.balance + it - p; }
+      interest += it; paid += p;
+    }
+    let budget = extra + (lump[ym] || 0);
+    if (strategy !== 'none' && budget > 0) {
+      const order = ls.filter(l => l.balance > 0.005).sort((a,b) => strategy==='avalanche' ? (b.apr||0)-(a.apr||0) || a.balance-b.balance : a.balance-b.balance);
+      for (const l of order) {
+        if (budget <= 0) break;
+        const x = Math.min(budget, l.balance); l.balance -= x; budget -= x; paid += x;
+        if (l.kind === 'sched' && l.balance > 0) { // 白条提前还：从最后几期往前抹掉
+          let left = l.balance; const keys = Object.keys(l.schedule).filter(k => k > ym).sort();
+          const ns = {}; for (const k of keys) { if (left <= 0) break; const a = Math.min(l.schedule[k], left); ns[k] = a; left -= a; }
+          l.schedule = ns;
+        }
+      }
+    }
+    for (const l of ls) if (l.balance < 0.005) l.balance = 0;
+    const remaining = ls.reduce((s,l) => s + l.balance, 0);
+    totalInterest += interest;
+    rows.push({ ym, paid, interest, remaining });
+    if (freeExSched === null && ls.filter(l=>l.kind!=='sched').reduce((s,l)=>s+l.balance,0) < 0.5) freeExSched = ym;
+    if (remaining < 0.5 && freeAt === null) { freeAt = ym; break; }
+  }
+  return { rows, totalInterest, freeAt, freeExSched, totalPaid: rows.reduce((s,r)=>s+r.paid,0) };
+}
+// 只按期还时，每月各平台金额（用于现状图）
+function dueByGroup(loans, start, n) {
+  const ls = loans.map(l => ({...l}));
+  const out = [];
+  for (let i=0;i<n;i++) {
+    const ym = addM(start,i); const g = {};
+    for (const l of ls) { const p = scheduledPayment(l, ym); if (p>0) { g[l.group]=(g[l.group]||0)+p; if (l.kind==='sched') l.balance-=p; else l.balance = l.balance + monthlyInterest(l) - p; } }
+    out.push({ ym, g });
+  }
+  return out;
+}
+function pmtOf(P, apr, n) { const r = apr/12; return r ? P*r/(1-Math.pow(1+r,-n)) : P/n; }
+
+// ---------- SVG 图 ----------
+function svgStackedBars(cats, groups, colors, refLine, opts={}) {
+  const W=window.innerWidth<600?400:720, H=opts.h||260, pl=44, pr=8, pt=14, pb=26; const iw=W-pl-pr, ih=H-pt-pb;
+  const totals = cats.map((_,i)=>groups.reduce((s,g)=>s+(g.data[i]||0),0));
+  const max = Math.max(...totals, refLine?.value||0) * 1.08 || 1;
+  const bw = iw/cats.length; let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  const ticks = 4; for (let t=0;t<=ticks;t++){ const v=max/ticks*t, y=pt+ih-v/max*ih; s+=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" stroke="#eee"/><text x="${pl-4}" y="${y+4}" font-size="10" fill="#888" text-anchor="end">${v>=10000?(v/10000).toFixed(1)+'万':fmt(v)}</text>`; }
+  cats.forEach((c,i)=>{ let y=pt+ih; groups.forEach(g=>{ const v=g.data[i]||0; if(!v) return; const h=v/max*ih; y-=h; s+=`<rect x="${pl+i*bw+bw*0.15}" y="${y}" width="${bw*0.7}" height="${h}" fill="${colors[g.name]||'#999'}"><title>${c} ${g.name} ${fmt(v)}</title></rect>`; });
+    if (totals[i]>0 && cats.length<=14) s+=`<text x="${pl+i*bw+bw/2}" y="${y-3}" font-size="10" fill="#444" text-anchor="middle">${totals[i]>=10000?(totals[i]/10000).toFixed(1)+'万':fmt(totals[i])}</text>`;
+    if (cats.length<=14 || i%2===0) s+=`<text x="${pl+i*bw+bw/2}" y="${H-8}" font-size="10" fill="#888" text-anchor="middle">${c}</text>`; });
+  if (refLine) { const y=pt+ih-refLine.value/max*ih; s+=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" stroke="#b7791f" stroke-dasharray="4 3"/><text x="${W-pr}" y="${y-4}" font-size="10" fill="#b7791f" text-anchor="end">${refLine.label}</text>`; }
+  return s+'</svg>';
+}
+function svgLines(cats, series, opts={}) {
+  const W=window.innerWidth<600?400:720, H=opts.h||260, pl=44, pr=8, pt=14, pb=26; const iw=W-pl-pr, ih=H-pt-pb;
+  const all = series.flatMap(s=>s.data).concat((opts.refs||[]).map(r=>r.value));
+  let max=Math.max(...all)*1.08||1, min=Math.min(0,...all); const span=max-min||1;
+  const X=i=>pl+i/(Math.max(cats.length-1,1))*iw, Y=v=>pt+ih-(v-min)/span*ih;
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  for (let t=0;t<=4;t++){ const v=min+span/4*t, y=Y(v); s+=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" stroke="#eee"/><text x="${pl-4}" y="${y+4}" font-size="10" fill="#888" text-anchor="end">${Math.abs(v)>=10000?(v/10000).toFixed(1)+'万':fmt(v)}</text>`; }
+  (opts.refs||[]).forEach(r=>{ const y=Y(r.value); s+=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" stroke="${r.color||'#b7791f'}" stroke-dasharray="4 3"/><text x="${W-pr}" y="${y-4}" font-size="10" fill="${r.color||'#b7791f'}" text-anchor="end">${r.label}</text>`; });
+  series.forEach(se=>{ const d=se.data.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' '); s+=`<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2"/>`; if (opts.dots) se.data.forEach((v,i)=>s+=`<circle cx="${X(i)}" cy="${Y(v)}" r="2.5" fill="${se.color}"><title>${cats[i]} ${se.name} ${fmt(v)}</title></circle>`); if (opts.labels) se.data.forEach((v,i)=>{ if(i%Math.ceil(cats.length/10)===0||i===cats.length-1) s+=`<text x="${X(i)}" y="${Y(v)-6}" font-size="10" fill="${se.color}" text-anchor="middle">${fmt(v)}</text>`; }); });
+  cats.forEach((c,i)=>{ if (cats.length<=12 || i%Math.ceil(cats.length/9)===0) s+=`<text x="${X(i)}" y="${H-8}" font-size="10" fill="#888" text-anchor="middle">${c}</text>`; });
+  return s+'</svg>';
+}
+
+// ---------- 渲染 ----------
+function renderAll() { renderNow(); renderRate(); renderSim(); renderLog(); }
+function renderNow() {
+  const { loans, settings: S } = DATA;
+  const live = loans.filter(l=>l.balance>0.005);
+  const total = live.reduce((s,l)=>s+l.balance,0);
+  const due = dueByGroup(live, S.start, 18);
+  const q4 = due.slice(0,3).reduce((s,r)=>s+Object.values(r.g).reduce((a,b)=>a+b,0),0);
+  const monthlyInt = live.reduce((s,l)=>s+monthlyInterest(l),0);
+  const hot = live.filter(l=>(l.apr||0)>=0.144).reduce((s,l)=>s+l.balance,0);
+  // 清零月（只按期还）
+  const base = simulate(live, { start:S.start, strategy:'none' });
+  $('#kpi').innerHTML = `
+    <div class="stat"><b>${(total/10000).toFixed(1)} 万</b><span>剩余本金 · ${live.length} 项</span></div>
+    <div class="stat red"><b>${(q4/10000).toFixed(1)} 万</b><span>未来 3 个月要还（${short(S.start)}–${short(addM(S.start,2))}）</span></div>
+    <div class="stat"><b>${fmt(S.income)}</b><span>每月到手工资</span></div>
+    <div class="stat amber"><b>+${fmt(S.income - S.living)}</b><span>工资 − 生活 ${fmt(S.living)}</span></div>
+    <div class="stat"><b>${fmt(monthlyInt)}</b><span>当前每月利息</span></div>
+    <div class="stat red"><b>${fmt(hot)}</b><span>利率 ≥14.4% 的本金</span></div>
+    <div class="stat green"><b>${base.freeAt ? short(base.freeAt) : '—'}</b><span>只按期还的清零月</span></div>`;
+  const groups = Object.keys(COLORS).map(name=>({ name, data: due.map(r=>r.g[name]||0) })).filter(g=>g.data.some(v=>v));
+  $('#chartDue').innerHTML = svgStackedBars(due.map(r=>short(r.ym)), groups, COLORS, { value:S.income, label:'到手工资 '+fmt(S.income) });
+  $('#legendDue').innerHTML = groups.map(g=>`<span><i style="background:${COLORS[g.name]}"></i>${g.name}</span>`).join('');
+  // 为什么
+  const why = S.history || [];
+  $('#chartWhy').innerHTML = svgLines(why.map(h=>short(h.ym)), [
+    { name:'固定月供', data: why.map(h=>h.service), color:'#c8321e' },
+    { name:'到手工资', data: why.map(h=>h.income), color:'#1e7f4f' },
+  ], { dots:true, labels:true, h:230 });
+  // 消费
+  $('#spend').innerHTML = `<tr><th>类别</th><th class="n">月均</th><th class="n">≈ 每天</th><th>里面是什么</th></tr>` + (S.spend||[]).map(r=>`<tr><td>${r.cat}</td><td class="n">${fmt(r.v)}</td><td class="n">${Math.round(r.v/30.4)}</td><td class="muted">${r.note||''}</td></tr>`).join('') +
+    `<tr><th>合计（含房租）</th><th class="n">${fmt((S.spend||[]).reduce((s,r)=>s+r.v,0))}</th><th class="n">${Math.round((S.spend||[]).reduce((s,r)=>s+r.v,0)/30.4)}</th><th></th></tr>`;
+  // 明细
+  const sorted = [...live].sort((a,b)=>(b.apr||0)-(a.apr||0));
+  $('#loansTable').innerHTML = `<tr><th>债项</th><th class="n">年化</th><th class="n">月供</th><th class="n">剩余本金</th><th class="n">月利息</th></tr>` +
+    sorted.map(l=>`<tr><td>${l.name}${(l.apr||0)>=0.144?'<span class="tag hot">高</span>':''}<div class="muted">${l.platform||l.group}${l.note?' · '+l.note:''}</div></td><td class="n">${l.apr==null?'分期费':(l.apr*100).toFixed(l.apr*100%1?2:0)+'%'}</td><td class="n">${l.kind==='sched'?(l.schedule?.[S.start]?fmt(l.schedule[S.start]):'—'):fmt(l.pmt||l.balance)}</td><td class="n">${fmt(l.balance)}</td><td class="n">${fmt(monthlyInterest(l))}</td></tr>`).join('') +
+    `<tr><th>合计</th><th></th><th></th><th class="n">${fmt(total)}</th><th class="n">${fmt(monthlyInt)}</th></tr>`;
+}
+function renderRate() {
+  const rates = [ [7.2,'借呗 / 度小满大额'], [9,'微粒贷 1 万、2 万'], [14.4,'新借的小额'], [18.25,'信用卡最低还款 / 月付'] ];
+  $('#rateCards').innerHTML = rates.map(([r,n])=>`<div class="stat ${r>=14?'red':r>=9?'amber':''}"><b>${fmt(10000*r/100/12)} 元/月</b><span>${r}% · ${n}<br>一年 ${fmt(10000*r/100)} 元</span></div>`).join('');
+  const live = DATA.loans.filter(l=>l.balance>0.005);
+  const byG = {}; for (const l of live) { const g=l.group; byG[g]=(byG[g]||0)+monthlyInterest(l); }
+  const total = Object.values(byG).reduce((a,b)=>a+b,0);
+  const bal = live.reduce((s,l)=>s+l.balance,0);
+  const wavg = live.reduce((s,l)=>s+l.balance*(l.apr||0),0)/bal;
+  $('#burn').innerHTML = `<div class="stat red"><b>${fmt(total)} 元/月</b><span>全部利息 · 一年 ${fmt(total*12)}</span></div><div class="stat"><b>${(wavg*100).toFixed(1)}%</b><span>加权平均利率</span></div>` + Object.entries(byG).filter(([,v])=>v>0.5).map(([g,v])=>`<div class="stat"><b>${fmt(v)}</b><span>${g}</span></div>`).join('');
+  calc();
+}
+function calc() {
+  const P=+$('#cAmt').value||0, apr=(+$('#cApr').value||0)/100, n=+$('#cN').value||1, inc=+$('#cInc').value||1;
+  const p=pmtOf(P,apr,n), ti=p*n-P; const p36=pmtOf(P,apr,36);
+  $('#calcOut').innerHTML = `<div class="stat ${p/inc>0.3?'red':'green'}"><b>${fmt(p)}</b><span>月供 · 占到手 ${Math.round(p/inc*100)}%</span></div><div class="stat"><b>${fmt(ti)}</b><span>总利息</span></div><div class="stat"><b>${fmt(p36)}</b><span>同样的钱分 36 期的月供</span></div><div class="stat"><b>${fmt(pmtOf(P,apr,36)*36-P)}</b><span>36 期总利息</span></div>`;
+  $('#calcNote').textContent = p/inc>0.3 ? `月供超过到手收入的 30%，这笔就不该这么借。多付 ${fmt(pmtOf(P,apr,36)*36-P-ti)} 利息换 36 期，每月少还 ${fmt(p-p36)}。` : '月供在到手收入 30% 以内，可承受。';
+}
+['cAmt','cApr','cN','cInc'].forEach(id=>$('#'+id).oninput=calc);
+
+function renderSim() {
+  const S = DATA.settings; const live = DATA.loans.filter(l=>l.balance>0.005);
+  const extra = +$('#extra').value; $('#extraV').textContent = fmt(extra);
+  const lump = {}; const la=+$('#lumpAmt').value, lm=$('#lumpM').value.trim(); if (la>0 && /^\d{4}-\d{2}$/.test(lm)) lump[lm]=la;
+  const R = { none: simulate(live,{start:S.start,strategy:'none',extra,lump}), avalanche: simulate(live,{start:S.start,strategy:'avalanche',extra,lump}), snowball: simulate(live,{start:S.start,strategy:'snowball',extra,lump}) };
+  const names = { none:'只按期还', avalanche:'雪崩（高利率先）', snowball:'雪球（小额先）' };
+  const cls = { none:'', avalanche:'red', snowball:'green' };
+  $('#simCmp').innerHTML = Object.entries(R).map(([k,r])=>`<div class="stat ${cls[k]}"><b>${r.freeAt?short(r.freeAt):'>5年'}</b><span>${names[k]}<br>贷款清零 ${r.freeExSched?short(r.freeExSched):'—'}（白条尾巴除外）<br>总利息 ${fmt(r.totalInterest)} · 共还 ${fmt(r.totalPaid)}</span></div>`).join('');
+  const n = Math.max(...Object.values(R).map(r=>r.rows.length));
+  const cats = Array.from({length:n},(_,i)=>short(addM(S.start,i)));
+  const pad = (rows)=>Array.from({length:n},(_,i)=>rows[i]?rows[i].remaining:0);
+  $('#chartSim').innerHTML = svgLines(cats, [
+    { name:'只按期还', data:pad(R.none.rows), color:'#8a8880' },
+    { name:'雪崩', data:pad(R.avalanche.rows), color:'#c8321e' },
+    { name:'雪球', data:pad(R.snowball.rows), color:'#1e7f4f' },
+  ], { h:240 });
+  $('#simTable').innerHTML = `<tr><th>月</th><th class="n">当月付出</th><th class="n">其中利息</th><th class="n">月末剩余</th></tr>` + R.avalanche.rows.map(r=>`<tr><td>${r.ym}</td><td class="n">${fmt(r.paid)}</td><td class="n">${fmt(r.interest)}</td><td class="n">${fmt(r.remaining)}</td></tr>`).join('');
+}
+['extra','lumpAmt','lumpM'].forEach(id=>$('#'+id).oninput=()=>DATA&&renderSim());
+
+function renderLog() {
+  const { loans, payments=[], origin } = DATA;
+  const cur = loans.reduce((s,l)=>s+l.balance,0);
+  const orig = origin?.total || cur;
+  const paid = Math.max(0, orig-cur);
+  $('#origTotal').textContent = fmt(orig)+' 元（'+(origin?.date||'')+'）'; $('#curTotal').textContent = fmt(cur)+' 元'; $('#curMonth').textContent = DATA.settings.start;
+  $('#progBar').style.width = Math.min(100, paid/orig*100).toFixed(1)+'%';
+  $('#progText').textContent = `已减少本金 ${fmt(paid)} 元（${(paid/orig*100).toFixed(1)}%），还剩 ${fmt(cur)} 元。${loans.filter(l=>l.balance<=0.005).length} 项已清零。`;
+  $('#loanList').innerHTML = loans.map((l,i)=>{
+    const done = l.balance<=0.005;
+    const principalPart = l.kind==='sched' ? (l.schedule?.[DATA.settings.start]||0) : Math.max(0, Math.min(l.balance, (l.kind==='card'?l.balance:(l.pmt||0)) - monthlyInterest(l)));
+    return `<div class="loan" style="${done?'opacity:.45':''}"><div class="l"><b>${l.name}</b><div>${l.platform||l.group} · ${l.apr==null?'分期':(l.apr*100).toFixed(1)+'%'} · 每月 ${l.dueDay||'?'} 日${l.kind==='sched'?'':' · 月供 '+fmt(l.pmt||l.balance)}</div>
+      ${done?'<div style="color:var(--green)">已清零</div>':`<div class="row" style="margin-top:6px"><button class="btn sm" data-pay="${i}" data-amt="${principalPart.toFixed(2)}">还了这期（本金 −${fmt(principalPart)}）</button><button class="btn ghost sm" data-pre="${i}">提前还…</button></div>`}</div>
+      <div class="r"><b>${fmt(l.balance)}</b><div class="muted">剩余本金</div></div></div>`; }).join('');
+  document.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>pay(+b.dataset.pay, +b.dataset.amt, '按期'));
+  document.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{ const l=loans[+b.dataset.pre]; const v=prompt(`提前还多少？（${l.name} 剩余 ${fmt(l.balance)}）`); const x=parseFloat(v); if (x>0) pay(+b.dataset.pre, Math.min(x,l.balance), '提前'); });
+  $('#payLog').innerHTML = `<tr><th>日期</th><th>债项</th><th class="n">减少本金</th><th>类型</th></tr>` + [...payments].reverse().slice(0,40).map(p=>`<tr><td>${p.date}</td><td>${p.name}</td><td class="n">${fmt(p.amount)}</td><td class="muted">${p.type}</td></tr>`).join('') || '<tr><td class="muted">还没有记录</td></tr>';
+}
+function pay(i, amount, type) {
+  const l = DATA.loans[i]; if (!l || amount<=0) return;
+  l.balance = Math.max(0, l.balance - amount);
+  if (l.kind==='sched' && type==='按期') { const k = DATA.settings.start; if (l.schedule) delete l.schedule[k]; }
+  if (type==='按期' && l.kind!=='sched') { /* 期数减一 */ l.n = Math.max(0,(l.n||1)-1); }
+  (DATA.payments ||= []).push({ date:new Date().toISOString().slice(0,10), loanId:l.id, name:l.name, amount:Math.round(amount*100)/100, type, before: l.balance+amount });
+  // 若所有本月应还都已记，滚动到下个月
+  save(); renderAll(); toast(`${l.name} −${fmt(amount)}`);
+}
+$('#nextMonth').onclick = () => { if (!DATA) return; if (!confirm(`把账期从 ${DATA.settings.start} 推到 ${addM(DATA.settings.start,1)}？`)) return; DATA.settings.start = addM(DATA.settings.start,1); save(); renderAll(); };
+$('#undo').onclick = () => { const p=(DATA.payments||[]).pop(); if (!p) return; const l=DATA.loans.find(x=>x.id===p.loanId); if (l) l.balance = p.before; save(); renderAll(); toast('已撤销'); };
+$('#exportJson').onclick = () => { const a=document.createElement('a'); a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(DATA,null,1)); a.download='finance.json'; a.click(); };
+
+let rzT; window.addEventListener('resize',()=>{ clearTimeout(rzT); rzT=setTimeout(()=>DATA&&renderAll(),200); });
+// ---------- 启动 ----------
+if (!code) askCode(); else load();
+</script>
+</body>
+</html>
