@@ -1,5 +1,5 @@
 window.initExpressionCraft=function(core){
-  const {S,Q,session,ui,detail}=core,$=(s,r=document)=>r.querySelector(s);
+  const {S,Q,session,ui,detail,cam}=core,$=(s,r=document)=>r.querySelector(s);
   const cn=()=>core.getLang()==='zh',t=(a,b)=>cn()?a:b;
   const view=$('#view-rec'),column=$('.camera-column');
   session.diary=false;view.classList.remove('diary-mode');
@@ -21,9 +21,10 @@ window.initExpressionCraft=function(core){
   stage.innerHTML='<div class="prompt-eyebrow"><span class="prompt-dot"></span><span id="promptEyebrow"></span><span id="promptCount"></span></div><h2 id="expressionPrompt" aria-live="polite"></h2><p id="promptSupport"></p><div class="prompt-actions"><button id="changeOpening" class="subtle-button" type="button"></button></div>';
   $('.frame').before(stage);
   const settings=document.createElement('details');settings.className='capture-settings';
-  settings.innerHTML='<summary><span id="captureOptionsLabel"></span><span id="captureOptionsSummary"></span></summary><div class="capture-settings-body"><label class="format-picker"><span id="formatLabel"></span><select id="captureFormat" aria-label="录制比例"><option value="3:4">3:4 · 日志</option><option value="9:16">9:16 · 竖屏</option><option value="16:9">16:9 · 横屏</option><option value="1:1">1:1 · 方形</option></select></label><label class="trim-toggle"><input type="checkbox" id="trimSilence"><span class="switch-track"></span><span id="trimLabel"></span></label><button id="freeSpeak" class="subtle-button" type="button"></button></div>';
+  settings.innerHTML='<summary><span id="captureOptionsLabel"></span><span id="captureOptionsSummary"></span></summary><div class="capture-settings-body"><label class="format-picker"><span id="formatLabel"></span><select id="captureFormat" aria-label="录制比例"><option value="3:4">3:4 · 日志</option><option value="9:16">9:16 · 竖屏</option><option value="16:9">16:9 · 横屏</option><option value="1:1">1:1 · 方形</option></select></label><label class="mic-picker"><span id="micLabel"></span><select id="micDevice" aria-label="麦克风"></select></label><label class="trim-toggle"><input type="checkbox" id="trimSilence"><span class="switch-track"></span><span id="trimLabel"></span></label><button id="freeSpeak" class="subtle-button" type="button"></button></div>';
   $('.diary-heading').after(settings);
   const recFeedback=document.createElement('p');recFeedback.id='recordFeedback';$('.controls').after(recFeedback);
+  const micLive=document.createElement('div');micLive.id='micLive';micLive.innerHTML='<span id="micLiveLabel"></span><i></i>';$('.controls').before(micLive);
   const speakLabel=document.createElement('label');speakLabel.className='speak-toggle';speakLabel.innerHTML='<input type="checkbox" id="readQuestions"><span id="readQuestionsLabel"></span>';$('#cameraOptions').append(speakLabel);
   $('#trimSilence').checked=S.trimSilence!==false;
   $('#trimSilence').onchange=e=>{if(session.phase!=='idle')return;S.trimSilence=e.target.checked;core.saveSettings();sync();};
@@ -31,6 +32,43 @@ window.initExpressionCraft=function(core){
   $('#readQuestions').onchange=e=>{S.speak=e.target.checked;core.saveSettings();};
   $('#captureFormat').value=core.getCaptureFormat().id;
   $('#captureFormat').onchange=e=>{if(!core.setCaptureFormat(e.target.value))e.target.value=core.getCaptureFormat().id;sync();};
+  async function refreshMics(){
+    const select=$('#micDevice'); if(!select) return;
+    const mics=typeof core.listMics==='function'?await core.listMics():[];
+    const current=S.micDeviceId||'';
+    const keep=select.value;
+    select.textContent='';
+    const add=(id,label)=>{
+      const opt=document.createElement('option');
+      opt.value=id; opt.textContent=label;
+      if(id===current) opt.selected=true;
+      select.append(opt);
+    };
+    add('',t('自动（避开虚拟声卡）','Auto (skip virtual cables)'));
+    mics.forEach(m=>{
+      const virtual=core.VIRTUAL_MIC?.test(m.label||'');
+      add(m.deviceId,(m.label||t('未命名麦克风','Unnamed mic'))+(virtual?t(' · 可能无声',' · may be silent'):''));
+    });
+    if(current && !mics.some(m=>m.deviceId===current)) select.value='';
+    else if(!current && keep && [...select.options].some(o=>o.value===keep)) select.value=keep;
+  }
+  $('#micDevice').onchange=async e=>{
+    if(session.phase!=='idle'){e.target.value=S.micDeviceId||'';return;}
+    S.micDeviceId=e.target.value;core.saveSettings();
+    if(cam.running){
+      try{
+        core.stopCamera();
+        await core.startCamera();
+        ui.idleMode(false);ui.pill('pill.preview');
+        ui.status(t('已切换麦克风：','Microphone: ')+(cam.micLabel||t('默认','default')));
+      }catch(err){
+        ui.status(t('切换麦克风失败：','Could not switch microphone: ')+err.message,true);
+      }
+    }
+    sync();
+  };
+  document.addEventListener('cam:mic-changed',()=>{refreshMics();sync();});
+  void refreshMics();
   const openings=[['今天有什么小事，让你现在还记得？','最近做成了什么？再小也算。','今天有哪个瞬间，让你松了一口气？','有件什么事，你想慢慢说清楚？'],['What small moment from today stayed with you?','What did you get done recently, however small?','What moment helped you breathe a little easier today?','What is one thing you would like to talk through?']];
   let opening=0;
   $('#changeOpening').onclick=()=>{
@@ -58,7 +96,7 @@ window.initExpressionCraft=function(core){
     const followupOn=assistantReady&&S.personalFollowup!==false;
     const format=core.getCaptureFormat();column.dataset.format=format.id;
     column.dataset.assistant=state;
-    $('#captureFormat').disabled=busy;$('#trimSilence').disabled=busy;$('#readQuestions').disabled=busy;
+    $('#captureFormat').disabled=busy;$('#trimSilence').disabled=busy;$('#readQuestions').disabled=busy;$('#micDevice').disabled=busy;
     $('#changeOpening').disabled=busy;$('#freeSpeak').disabled=busy;
     $('#promptEyebrow').textContent=session.diary?t('自由记录','Free recording'):waiting?t('正在接住你的话','Finding a follow-up'):recording&&state==='followup'?t('接着聊聊','A little further'):recording?t('正在聊的问题','Your question'):t('今天，从这里开始','Start here today');
     $('#promptCount').textContent=session.diary?'':recording?t('第 '+(session.qi+1)+' 问','Question '+(session.qi+1)):t('第 1 问','Question 1');
@@ -77,19 +115,24 @@ window.initExpressionCraft=function(core){
     $('#customOpen').textContent=t('自定义话题','My own topic');
     $('#diaryMode').hidden=true;
     $('#captureOptionsLabel').textContent=t('录制选项','Recording options');
-    $('#captureOptionsSummary').textContent=format.id+' · '+(S.trimSilence!==false?t('自动剪静默','Trim pauses'):t('保留停顿','Keep pauses'));
+    const micName=cam.micLabel?cam.micLabel.replace(/^Default\s*-\s*/i,''):'';
+    $('#captureOptionsSummary').textContent=format.id+' · '+(S.trimSilence!==false?t('自动剪静默','Trim pauses'):t('保留停顿','Keep pauses'))+(micName?' · '+micName:'');
     $('#formatLabel').textContent=t('画幅','Format');
+    $('#micLabel').textContent=t('麦克风','Microphone');
     $('#captureFormat').setAttribute('aria-label',t('录制比例','Recording aspect ratio'));
+    $('#micDevice').setAttribute('aria-label',t('麦克风','Microphone'));
     const labels=cn()?['3:4 · 日志','9:16 · 竖屏','16:9 · 横屏','1:1 · 方形']:['3:4 · Diary','9:16 · Portrait','16:9 · Landscape','1:1 · Square'];
     Array.from($('#captureFormat').options).forEach((o,i)=>o.textContent=labels[i]);
     $('#trimLabel').textContent=t('自动剪静默','Trim pauses');
     $('#readQuestionsLabel').textContent=t('朗读问题','Read questions aloud');
+    $('#micLiveLabel').textContent=t('麦克风','Mic');
+    $('#micLive').hidden=!cam.running && session.phase==='idle';
     $('#btnNext').hidden=session.diary||!recording;$('#btnNext').textContent=waiting?t('正在处理…','Processing…'):t('这段说完了','I’m done with this');
     $('#btnNext').disabled=!recording||waiting;
     $('#shutterLabel').textContent=recording?t('结束并回看','Finish & watch'):session.phase==='countdown'?t('取消','Cancel'):session.phase==='finishing'?t('正在保存','Saving'):t('开始说','Start talking');
     $('#btnShutter').setAttribute('aria-label',$('#shutterLabel').textContent);
     $('#btnTheme').setAttribute('aria-label',t('切换明暗','Switch appearance'));$('#btnLang').setAttribute('aria-label',t('切换语言','Switch language'));
-    $('#recordFeedback').textContent=recording?(S.trimSilence!==false?t('静默已剪去 ','Pauses trimmed: ')+Math.floor(session.cutMs/1000)+t(' 秒 · 原片完整保留','s · Original kept in full'):t('完整记录中 · 原片也会保留','Recording in full · Original kept')):t('视频保存在当前浏览器，重要记录记得下载。','Videos stay in this browser. Download the ones you want to keep.');
+    $('#recordFeedback').textContent=recording?(S.trimSilence!==false?t('静默已剪去 ','Pauses trimmed: ')+Math.floor(session.cutMs/1000)+t(' 秒 · 原片完整保留','s · Original kept in full'):t('完整记录中 · 原片也会保留','Recording in full · Original kept')):t('视频保存在当前浏览器，重要记录记得下载。先看麦克风电平有跳动再开始。','Videos stay in this browser. Check the mic meter moves before you start.');
     const idleTitle=$('.idle-title');if(idleTitle)idleTitle.textContent=t('开始后开启镜头','Camera opens when you start');
     const note=$('.capture-note');if(note)note.hidden=true;
     $('#cameraOptions summary').textContent=t('画面与声音','Camera & sound');
