@@ -1,4 +1,7 @@
 const ORIGINS = new Set(['https://baidou.cam', 'https://cam.baidou.work', 'https://baidou-cam.pages.dev']);
+// Native app shells (Capacitor WKWebView) call the API cross-origin; they still need the access code.
+const APP_ORIGINS = new Set(['capacitor://localhost']);
+const CORS_HEADERS = 'Authorization, Content-Type, X-Transcription-Token';
 const TOPICS = new Set(['daily', 'work', 'investing', 'relationships', 'reading', 'practice']);
 const STYLES = new Set(['gentle', 'direct', 'reflective']);
 const MAX_REQUEST = 24 * 1024;
@@ -31,9 +34,21 @@ function transcriptionConfigured(env) {
     && typeof env.DIARY_AUDIO?.put === 'function' && typeof env.DIARY_AUDIO?.get === 'function'
     && typeof env.DIARY_AUDIO?.delete === 'function' && typeof env.AI_LIMITS?.fetch === 'function';
 }
+function appOrigin(request) {
+  const origin = request.headers.get('Origin');
+  return origin && APP_ORIGINS.has(origin) ? origin : '';
+}
+function withCors(response, origin) {
+  if (!origin) return response;
+  const headers = new Headers(response.headers);
+  headers.set('Access-Control-Allow-Origin', origin);
+  headers.append('Vary', 'Origin');
+  return new Response(response.body, {status: response.status, statusText: response.statusText, headers});
+}
 function validOrigin(request, env, allowMissing = false) {
   const origin = request.headers.get('Origin');
   if (!origin) return allowMissing;
+  if (APP_ORIGINS.has(origin)) return true;
   const url = new URL(request.url);
   if (origin !== url.origin) return false;
   if (ORIGINS.has(origin)) return true;
@@ -391,6 +406,17 @@ export default {
     try { pathname = decodeURIComponent(url.pathname); } catch { return new Response('Bad request', {status: 400}); }
     if (/\/_worker\.js(?:\/|\.|$)/i.test(pathname)) return new Response('Not found', {status: 404});
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+    const origin = appOrigin(request);
+    if (origin && request.method === 'OPTIONS') {
+      return new Response(null, {status: 204, headers: {
+        'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': CORS_HEADERS, 'Access-Control-Max-Age': '86400', 'Vary': 'Origin', 'Cache-Control': 'no-store'
+      }});
+    }
+    return withCors(await route(request, env, url), origin);
+  }
+};
+async function route(request, env, url) {
     try {
       if (url.pathname === '/api/coach/status' && request.method === 'GET') {
         if (!validOrigin(request, env, true)) throw new SafeError(403, 'forbidden', '请求来源不被允许。');
@@ -421,5 +447,4 @@ export default {
       const safe = error instanceof SafeError ? error : new SafeError(503, 'unavailable', 'AI 暂时不可用，请稍后再试。');
       return json({error: {code: safe.code, message: safe.message}}, safe.status, safe.status === 429 ? {'Retry-After': '60'} : {});
     }
-  }
-};
+}

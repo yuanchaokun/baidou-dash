@@ -547,8 +547,9 @@ input[type="range"] { accent-color: var(--accent); width: 160px; }
 
 @media (max-width: 860px) {
   body { font-size: 15px; }
-  .app { max-width: 620px; padding: 0 18px max(20px, env(safe-area-inset-bottom)); }
+  .app { max-width: 620px; padding: env(safe-area-inset-top) 18px max(20px, env(safe-area-inset-bottom)); }
   .top { padding: 14px 0 8px; gap: 8px; }
+  #customDialog { margin-bottom: max(0px, env(safe-area-inset-bottom)); }
   .brand .brand-icon { width: 32px; height: 32px; border-radius: 9px; }
   .brand b { font-size: 18px; }
   .quick button, #btnSettings { padding: 0 9px; min-width: 34px; }
@@ -616,7 +617,7 @@ input[type="range"] { accent-color: var(--accent); width: 160px; }
   .win-side nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; padding: 0 12px 12px; gap: 4px; scrollbar-width: none; }
   .win-side nav::-webkit-scrollbar { display: none; }
   .win-side nav button { width: auto; flex-shrink: 0; min-height: 34px; padding: 0 12px; font-size: 13px; }
-  .win-pane { padding: 20px 16px 28px; }
+  .win-pane { padding: 20px 16px max(28px, env(safe-area-inset-bottom)); }
   .win-pane h2 { font-size: 20px; }
   .card .row { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
   .seg { flex-wrap: wrap; max-width: 100%; }
@@ -640,6 +641,11 @@ input[type="range"] { accent-color: var(--accent); width: 160px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* ---------- Native app (Capacitor) ---------- */
+html[data-native] .file [data-dl]:has(+ [data-sh]), html[data-native] #btnFolder, html[data-native] #btnFolderClear { display: none; }
+html[data-native] body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+html[data-native] input, html[data-native] textarea, html[data-native] [contenteditable], html[data-native] .detail { -webkit-user-select: text; user-select: text; }
 </style>
 </head>
 <body>
@@ -1202,8 +1208,9 @@ const DB = {
   kvDel(k) { return this.tx('kv', 'readwrite', st => st.delete(k)); }
 };
 
-/* ---------- 本地文件夹（File System Access） ---------- */
-const FS = {
+/* ---------- 本地文件夹（File System Access；原生 App 由 BaidouNative.fs 接管） ---------- */
+const NATIVE = window.BaidouNative || null;
+const FS = (NATIVE && NATIVE.fs) || {
   ok: typeof window.showDirectoryPicker === 'function',
   handle: null,
   async load() { if (!this.ok) return; try { this.handle = (await DB.kvGet('dir')) || null; } catch (_) { this.handle = null; } },
@@ -2095,11 +2102,12 @@ function fileName(e, kind) {
   return e.date + '_' + pad(d.getHours()) + pad(d.getMinutes()) + '_' + title + '_' + t('fn.' + kind) + '.' + ext;
 }
 function download(blob, name) {
+  if (NATIVE && NATIVE.share) return NATIVE.share(blob, name, name);
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000);
 }
-function canShareFiles(blob, name) { try { const f = new File([blob], name, { type: blob.type }); return !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (_) { return false; } }
-async function shareFile(blob, name, title) { try { await navigator.share({ files: [new File([blob], name, { type: blob.type })], title }); } catch (_) {} }
+function canShareFiles(blob, name) { if (NATIVE && NATIVE.share) return true; try { const f = new File([blob], name, { type: blob.type }); return !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (_) { return false; } }
+async function shareFile(blob, name, title) { if (NATIVE && NATIVE.share) return NATIVE.share(blob, name, title); try { await navigator.share({ files: [new File([blob], name, { type: blob.type })], title }); } catch (_) {} }
 
 const detail = {
   el: $('#detail'), urls: [],

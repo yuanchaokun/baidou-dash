@@ -4,6 +4,7 @@ window.initPersonalJournal = function (core) {
   const {S, session, ui, audio, DB} = core;
   const $ = s => document.querySelector(s);
   const t = (zh, en) => core.getLang() === 'zh' ? zh : en;
+  const API_BASE = (window.BAIDOU_APP && window.BAIDOU_APP.api) || '';
   S.personalCaptions ??= true;
   S.personalFollowup ??= true;
   if (!S.personalGuideVersion) { S.autoAdvanceSec = 0; S.personalGuideVersion = 1; core.saveSettings(); }
@@ -52,7 +53,7 @@ window.initPersonalJournal = function (core) {
     if(!value){status('unavailable',t('请先粘贴访问码。','Paste your access code first.'));return;}
     button.disabled=true;
     try{
-      const response=await fetch('/api/coach/access',{headers:{Authorization:'Bearer '+value},signal:AbortSignal.timeout(10000)});
+      const response=await fetch(API_BASE + '/api/coach/access',{headers:{Authorization:'Bearer '+value},signal:AbortSignal.timeout(10000)});
       if(!response.ok)throw new Error(response.status===401?t('访问码不正确，请检查后重试。','Incorrect access code. Please check and retry.'):t('暂时无法验证访问码，请稍后重试。','Could not verify the access code. Please try again.'));
       core.coach.setAccessCode(value);await core.coach.refreshStatus();
       status(available()?'ready':'unavailable',available()?t('AI 已开启。开始录制后，它会在第一轮结束时接着问。','AI is ready and will follow up after your first answer.'):t('访问码已验证，字幕服务暂未就绪。默认问题仍可使用。','Access verified. Captions are not ready yet; guiding questions are available.'));

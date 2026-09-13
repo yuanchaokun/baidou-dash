@@ -57,6 +57,24 @@ test('origin enforcement blocks third parties, different first-party origin and 
   for (const origin of ['https://evil.example', 'https://cam.baidou.work', 'null', null]) assert.equal((await worker.fetch(request(questionData, {origin}), environment())).status, 403);
   assert.equal(get().calls, 0);
 }));
+test('native app origin gets CORS, still needs the access code; other origins get no CORS', async () => withProvider(async get => {
+  const app = 'capacitor://localhost';
+  const env = environment({COACH_ACCESS_CODE: 'a-long-placeholder-code'});
+  const preflight = await worker.fetch(request(null, {origin: app, method: 'OPTIONS', headers: {'Access-Control-Request-Method': 'POST'}}), env);
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('Access-Control-Allow-Origin'), app);
+  assert.match(preflight.headers.get('Access-Control-Allow-Headers'), /Authorization/);
+  const status = await worker.fetch(request(null, {origin: app, method: 'GET', path: '/api/coach/status'}), env);
+  assert.equal(status.status, 200); assert.equal(status.headers.get('Access-Control-Allow-Origin'), app);
+  const denied = await worker.fetch(request(questionData, {origin: app}), env);
+  assert.equal(denied.status, 401); assert.equal(denied.headers.get('Access-Control-Allow-Origin'), app);
+  const ok = await worker.fetch(request({...questionData, accessCode: env.COACH_ACCESS_CODE}, {origin: app}), env);
+  assert.equal(ok.status, 200); assert.equal(ok.headers.get('Access-Control-Allow-Origin'), app);
+  assert.equal(get().calls, 1);
+  const evil = await worker.fetch(request(null, {origin: 'https://evil.example', method: 'OPTIONS'}), env);
+  assert.equal(evil.headers.has('Access-Control-Allow-Origin'), false);
+  assert.notEqual(evil.status, 204);
+}));
 test('localhost requires explicit development flag', async () => withProvider(async get => {
   const options = {origin: 'http://127.0.0.1:8790', urlOrigin: 'http://127.0.0.1:8790'};
   assert.equal((await worker.fetch(request(questionData, options), environment())).status, 403);

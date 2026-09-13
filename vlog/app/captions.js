@@ -4,6 +4,7 @@
   'use strict';
   const SAMPLE_RATE = 16000, MAX_SECONDS = 600, MAX_WAV_BYTES = 20 * 1024 * 1024;
   const MAX_SOURCE_BYTES = 180 * 1024 * 1024;
+  const API_BASE = (window.BAIDOU_APP && window.BAIDOU_APP.api) || '';
   const abortError = () => new DOMException('Cancelled', 'AbortError');
   function checkAbort(signal) { if (signal?.aborted) throw abortError(); }
   function sleep(ms, signal) {
@@ -120,7 +121,7 @@
       const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),60000);
       const aborted=()=>controller.abort();signal?.addEventListener('abort',aborted,{once:true});
       try{
-        const response=await fetch(url,{...init,signal:controller.signal,cache:'no-store'});
+        const response=await fetch(API_BASE+url,{...init,signal:controller.signal,cache:'no-store'});
         let data;try{data=await response.json();}catch(_){throw new Error(txt('字幕服务返回了无效结果，请稍后重试。','The caption service returned an invalid response. Please try again.'));}
         if(!response.ok){
           const fallback={401:txt('AI 访问码不正确，请重新填写。','Please check your AI access code.'),413:txt('音频超过 10 分钟的处理上限。','Audio exceeds the 10-minute limit.'),429:txt('请求较多，请稍后重试。','Too many requests. Please try later.'),503:txt('字幕服务还未配置，请先下载视频，稍后可重试。','The caption service is not configured. Download your video first and try later.')};

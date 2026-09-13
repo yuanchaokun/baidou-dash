@@ -152,7 +152,7 @@ window.initExpressionCraft=function(core){
     const selector=$('#vseg',this.el);if(selector){selector.classList.add('replay-switch');$('.player',this.el).before(selector);const buttons=selector.querySelectorAll('button');buttons[0].textContent=t('自动剪辑','Trimmed');buttons[1].textContent=t('原片','Original');}
     const info=document.createElement('p');info.className='clip-summary';info.textContent=entry.trimSilence===false?t('保留完整视频','Full recording kept'):t('已为你剪去 ','Trimmed ')+Math.round((entry.cutMs||0)/1000)+t(' 秒静默','s of pauses');
     $('.player',this.el).before(info);
-    const download=$('.download-video',this.el);if(download){download.dataset.dl=entry.shareBlob?.size?'share':'orig';download.textContent=t('下载当前版本','Download this version');}
+    const download=$('.download-video',this.el);if(download){download.dataset.dl=entry.shareBlob?.size?'share':'orig';download.textContent=window.BaidouNative?t('保存或分享','Save or share'):t('下载当前版本','Download this version');}
     if(selector)selector.addEventListener('click',e=>{const button=e.target.closest('button');if(!button)return;download.dataset.dl=button===selector.querySelector('button')?'share':'orig';});
     return result;
   };

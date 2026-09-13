@@ -1,0 +1,13 @@
+{
+  "appId": "cam.baidou.app",
+  "appName": "白豆 Cam",
+  "webDir": "www",
+  "loggingBehavior": "debug",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#f6f4ef",
+    "allowsLinkPreview": false,
+    "preferredContentMode": "mobile"
+  },
+  "plugins": {}
+}

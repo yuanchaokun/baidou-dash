@@ -6,6 +6,7 @@ window.initJournalCoach = function (core) {
   const esc = value => String(value ?? '').replace(/[&<>"']/g, x => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
   const zh = () => core.getLang() === 'zh';
   const txt = (cn, en) => zh() ? cn : en;
+  const API_BASE = (window.BAIDOU_APP && window.BAIDOU_APP.api) || '';
   const topics = {
     daily: {label:['日常','Everyday'], questions:[['今天有什么小事，让你现在还记得？','那一刻，你心里在想什么？','现在回看，你想对自己说什么？'],['What small moment from today stayed with you?','What was going through your mind then?','Looking back, what would you tell yourself?']]},
     work: {label:['工作','Work'],questions:[['今天推进了什么？说说一个具体的结果。','哪里卡住了，你试过什么办法？','明天最值得先做的一小步是什么？'],['What did you move forward today? Describe one concrete result.','Where did you get stuck, and what did you try?','What is the first small step worth taking tomorrow?']]},
@@ -119,7 +120,7 @@ window.initJournalCoach = function (core) {
     options.signal?.addEventListener('abort', cancel, {once:true});
     if(options.signal?.aborted) controller.abort();
     try {
-      const response=await fetch('/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,...(api.requiresAccessCode?{accessCode}: {})}),signal:controller.signal});
+      const response=await fetch(API_BASE + '/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,...(api.requiresAccessCode?{accessCode}: {})}),signal:controller.signal});
       let data={}; try{data=await response.json();}catch(_){}
       if(!response.ok){
         const messages={401:txt('访问码不正确，请重新输入。','The access code is incorrect.'),403:txt('这个请求暂时无法使用 AI 服务。','AI is not available for this request.'),429:txt('请求有点多，请稍后再试。','Too many requests. Please try later.'),503:txt('AI 服务暂未就绪，请稍后再试。','AI service is not ready. Please try later.')};
@@ -223,7 +224,7 @@ window.initJournalCoach = function (core) {
   }
   async function refreshStatus() {
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
-    try{const r=await fetch('/api/coach/status',{signal:controller.signal,cache:'no-store'});if(!r.ok)throw new Error('status');const data=await r.json();api={available:data.available===true,requiresAccessCode:data.requiresAccessCode===true,transcriptionAvailable:data.transcriptionAvailable===true};}catch(_){api={available:false,requiresAccessCode:false,transcriptionAvailable:false};}finally{clearTimeout(timer);statusKnown=true;$('#coachService').textContent=statusText();$('.access-wrap',prep).hidden=!api.requiresAccessCode;document.querySelectorAll('.feedback-access').forEach(e=>{e.hidden=!api.requiresAccessCode;});document.dispatchEvent(new CustomEvent('cam:coach-status'));}
+    try{const r=await fetch(API_BASE + '/api/coach/status',{signal:controller.signal,cache:'no-store'});if(!r.ok)throw new Error('status');const data=await r.json();api={available:data.available===true,requiresAccessCode:data.requiresAccessCode===true,transcriptionAvailable:data.transcriptionAvailable===true};}catch(_){api={available:false,requiresAccessCode:false,transcriptionAvailable:false};}finally{clearTimeout(timer);statusKnown=true;$('#coachService').textContent=statusText();$('.access-wrap',prep).hidden=!api.requiresAccessCode;document.querySelectorAll('.feedback-access').forEach(e=>{e.hidden=!api.requiresAccessCode;});document.dispatchEvent(new CustomEvent('cam:coach-status'));}
     return api;
   }
   core.coach={request,refreshStatus,status:()=>({...api,known:statusKnown}),getAccessCode:()=>accessCode,setAccessCode:value=>{accessCode=String(value).slice(0,256);sessionStorage.setItem('cam.aiAccess',accessCode);if($('#coachAccess'))$('#coachAccess').value=accessCode;}};
